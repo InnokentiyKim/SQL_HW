@@ -2,8 +2,8 @@
 
 SELECT title, duration_sec
 FROM tracks
-ORDER BY duration_sec DESC
-LIMIT 1;
+WHERE duration_sec = (SELECT MAX(duration_sec)
+					 FROM tracks);
 
 SELECT title
 FROM tracks 
@@ -42,11 +42,14 @@ JOIN album AS a ON t.album_id = a.album_id
 GROUP BY a.title 
 ORDER BY duration_sec_avg DESC;
 
-SELECT ar.artist_name  
-FROM artist_album AS aa 
-JOIN artist AS ar ON aa.artist_id = ar.artist_id 
-JOIN album AS a ON aa.album_id = a.album_id 
-WHERE a.release_year <> 2020;
+SELECT artist_name
+FROM artist 
+WHERE artist_name NOT IN 
+	(SELECT artist_name
+	FROM artist AS ar 
+	JOIN artist_album AS aa ON aa.artist_id = ar.artist_id
+	JOIN album AS a ON a.album_id = aa.album_id
+	WHERE a.release_year = 2020);
 
 SELECT DISTINCT c.title 
 FROM collection AS c 
@@ -58,15 +61,14 @@ JOIN artist AS ar ON aa.artist_id = ar.artist_id
 WHERE ar.artist_name = 'Bob Marley';
 
 -- Задание 4
-
-SELECT title
-FROM album
-JOIN artist_album USING(album_id)
-WHERE artist_id IN 
-	(SELECT artist_id
-	 FROM artist_genre
-	 GROUP BY artist_id
-	 HAVING COUNT(genre_id) > 1);
+	
+SELECT a.title
+FROM album AS a 
+JOIN artist_album AS aa USING(album_id)
+JOIN artist AS ar USING(artist_id)
+JOIN artist_genre AS ag USING(artist_id)
+GROUP BY a.title
+HAVING COUNT(DISTINCT ag.genre_id) > 1;                                                                     	
 
 SELECT title 
 FROM tracks
