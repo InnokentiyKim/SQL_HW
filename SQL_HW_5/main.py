@@ -100,6 +100,7 @@ class Client:
                 WHERE client_id = %s AND phone_id = %s
                 """, (client_id, phone_id)
             )
+            connection.commit()
 
     def delete_client(connection, client_id):
         with connection.cursor() as curr:
@@ -109,9 +110,18 @@ class Client:
                 ON DELETE CASCADE
                 """, (client_id)
             )
+            connection.commit()
 
-    def find_client(connection, first_name=None, last_name=None, email=None, phone=None):
-        pass
+    def find_client(connection, first_name=None, last_name=None, email=None, phone_number=None):
+        with connection.cursor() as curr:
+            curr.execute("""
+                SELECT (first_name, last_name, email, phone)
+                FROM client
+                JOIN phones using(client_id)
+                WHERE first_name = %d OR last_name = %s OR email = %s OR phone_number = %s
+                """, (first_name, last_name, email, phone_number)
+            )
+            print(curr.fetchone())
 
 conn = psycopg2.connect()
 
