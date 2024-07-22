@@ -1,0 +1,15 @@
+from sqlalchemy import Column, String, Integer
+from data_base.db_core import Base
+
+
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, index=True, nullable=False)
+    number_of_attempts = Column(Integer)
+    successful_attempts = Column(Integer)
+    success_streak = Column(Integer)
+
+    def __str__(self):
+        return self.name

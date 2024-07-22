@@ -1,21 +1,23 @@
 import os
 from emoji import emojize
+from dotenv import load_dotenv
 
-TOKEN = ''
-DB_NAME = 'words'
+load_dotenv()
+
+TOKEN = os.getenv('TOKEN')
+DB_NAME = os.getenv('DB_NAME')
+DIALECT = os.getenv('DIALECT')
+USERNAME = os.getenv('USERNAME')
+PASSWORD = os.getenv('PASSWORD')
+PORT = os.getenv('PORT')
+URL = os.getenv('URL')
 VERSION = '1.0.0'
 AUTHOR = 'InnCent'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# DATABASE = os.path.join('postgresql://'+BASE_DIR, DB_NAME)
-DIALECT = 'postgresql'
-USERNAME = ''
-PASSWORD = ''
-PORT = 5432
-URL = 'localhost'
-DSN = f"{DIALECT://{USERNAME}:{PASSWORD}@{URL}:{PORT}/{DB_NAME}}"
+DSN = f"{DIALECT}://{USERNAME}:{PASSWORD}@{URL}:{PORT}/{DB_NAME}"
 
 KEYBOARD = {
-    'INFO': emojize(":speech_baloon: О боте 'Learning English Vocabulary'" ),
+    'INFO': emojize(":speech_baloon: О боте 'Learning English Vocabulary'"),
     'SETTINGS': emojize(':gear: Настройки'),
     'NEXT_STEP': emojize(':right_arrow: Дальше'),
     'ADD_WORD': emojize(':plus: Добавить слово', variant='emoji_type'),
