@@ -1,10 +1,7 @@
-import telebot
 from settings import config
 from telebot import types, TeleBot
 from handlers.handler_main import HandlerMain
-from random import shuffle
 
-TOKEN = '7248775992:AAGVlmeqr1XgnoaCi8XrQEIBL14bjsOQL_Q'
 
 class TelBot:
 

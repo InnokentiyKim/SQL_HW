@@ -16,8 +16,8 @@ class HandlerAllText(Handler):
     #     self.bot.send_message(message.chat.id, MESSAGES['settings'],
     #                           parse_mode="HTML", reply_markup=self.keyboards.settings_menu())
     #
-    # def pressed_button_back(self, message):
-    #     self.bot.send_message(message.chat.id, "Вы вернулись назад", reply_markup=self.keyboards.start_menu())
+    def pressed_button_back(self, message):
+        self.bot.send_message(message.chat.id, "Вы вернулись назад", reply_markup=self.keyboards.start_menu())
 
     def handle(self):
         @self.bot.message_handler(func=lambda message: True)

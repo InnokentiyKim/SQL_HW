@@ -1,5 +1,5 @@
 import abc
-from markup.markup import Keyboards
+from markup.markup import Keyboards, TargetWords
 from data_base.dbalchemy import DBManager
 
 

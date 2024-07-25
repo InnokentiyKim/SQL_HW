@@ -23,8 +23,8 @@ KEYBOARD = {
     'ADD_WORD': emojize(':plus: Добавить слово', variant='emoji_type'),
     'DELETE_WORD': emojize(':minus: Удалить слово',),
     'EXIT': emojize(':cross_mark: Выход'),
-    'RUS': emojize(':flag_russia:'),
-    'ENG': emojize(':🇺🇲:')
+    'RUS': emojize('🇷🇺'),
+    'ENG': emojize('🇺🇲')
 }
 
 CATEGORY = {

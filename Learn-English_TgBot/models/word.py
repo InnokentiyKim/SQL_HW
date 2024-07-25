@@ -1,7 +1,8 @@
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, Mapped
 from data_base.db_core import Base
 from models.user import User
+
 
 
 class Word(Base):
@@ -10,12 +11,13 @@ class Word(Base):
     id = Column(Integer, primary_key=True)
     rus_title = Column(String, nullable=False)
     eng_title = Column(String, nullable=False)
-    is_studied = Column(Boolean, default=False)
-    number_of_attempts = Column(Integer)
-    successful_attempts = Column(Integer)
-    success_streak = Column(Integer)
+    is_studied = Column(Integer, default=0)
+    # number_of_attempts = Column(Integer, default=0)
+    # successful_attempts = Column(Integer, default=0)
+    # success_streak = Column(Integer, default=0)
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User, backref=backref('word'), uselist=True, cascade='delete, all')
+    user = relationship(User, backref=backref('word'), cascade='delete, all')
+    category = relationship("Category", secondary="category_word", back_populates="word")
 
     def __str__(self):
         return f"{self.rus_title} {self.eng_title} {self.is_studied}"

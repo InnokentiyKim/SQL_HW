@@ -7,9 +7,9 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True, nullable=False)
-    number_of_attempts = Column(Integer)
-    successful_attempts = Column(Integer)
-    success_streak = Column(Integer)
+    # number_of_attempts = Column(Integer, default=0)
+    # successful_attempts = Column(Integer, default=0)
+    # success_streak = Column(Integer, default=0)
 
     def __str__(self):
-        return self.name
+        return f"{self.id} {self.name}"
