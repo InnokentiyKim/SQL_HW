@@ -18,6 +18,7 @@ class TelBot:
 
     def run_bot(self):
         self.start()
+        print('English vocabulary bot is running...')
         self.bot.polling(none_stop=True)
 
 

@@ -12,10 +12,11 @@ class HandlerCommands(Handler):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
 
     def pressed_btn_cards(self, message):
-        cards_desk = self.keyboards.cards_desk(1)
-        self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['NEXT_WORD']} "
-                                               f"{KEYBOARD['RUS']} {self.keyboards.target_word.target_rus}",
-                              reply_markup=cards_desk)
+        main_keyboard = self.keyboards.get_next_word_keyboard(1)
+        self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
+                                               f"{self.DB.target_word.rus_title}",
+                              reply_markup=main_keyboard)
+
 
     def handle(self):
         @self.bot.message_handler(commands=[COMMANDS['START']])
@@ -27,3 +28,5 @@ class HandlerCommands(Handler):
         def handle(message):
             if message.text == '/cards':
                 self.pressed_btn_cards(message)
+
+

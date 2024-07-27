@@ -10,6 +10,7 @@ from models.category_word import CategoryWord
 import json
 import sqlalchemy as sa
 
+
 class Singleton(type):
     def __init__(cls, name, bases, attrs, **kwargs):
         super().__init__(name, bases, attrs)
@@ -29,15 +30,19 @@ class DBManager(metaclass=Singleton):
         Base.metadata.drop_all(self.engine)
         Base.metadata.create_all(self.engine)
         self.init_default_cards()
+        self.user_words = None
+        self.target_word = None
+        self.viewed_words = []
 
-    # def use_session(session):
+    # def use_active_session(self):
     #     def decor(func):
     #         @wraps(func)
     #         def wrapper(*args, **kwargs):
-    #             with session as sess:
+    #             with self._session as sess:
     #                 result = func(*args, **kwargs)
     #             return result
     #         return wrapper
+    #     return decor
 
     def identify_user(self, user_id):
         with self._session as session:
@@ -49,10 +54,10 @@ class DBManager(metaclass=Singleton):
             random_words = session.query(Word).join(User, Word.user_id == User.id).filter(User.id == user_id).order_by(sa.func.random()).limit(amount).all()
             return random_words
 
-    def get_next_card(self, user_id):
-        words_card = self.get_random_cards(user_id)
-        return words_card
-
+    def get_next_card(self, user_id) -> None:
+        self.user_words = self.get_random_cards(user_id)
+        self.target_word = self.user_words[0]
+        self.viewed_words.append(self.target_word)
 
     def close(self):
         self._session.close()
@@ -75,7 +80,7 @@ class DBManager(metaclass=Singleton):
         {"category_id": 1, "word_id": 7},
         {"category_id": 1, "word_id": 8},
         {"category_id": 1, "word_id": 9},
-            {"category_id": 1, "word_id": 10}
+        {"category_id": 1, "word_id": 10}
         ]
         for example in category_word_examples:
             self._session.add(CategoryWord(**example))

@@ -1,11 +1,11 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, BigInteger
 from data_base.db_core import Base
 
 
 class User(Base):
     __tablename__ = 'user'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     name = Column(String, index=True, nullable=False)
     # number_of_attempts = Column(Integer, default=0)
     # successful_attempts = Column(Integer, default=0)

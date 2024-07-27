@@ -18,13 +18,14 @@ DSN = f"{DIALECT}://{USERNAME}:{PASSWORD}@{URL}:{PORT}/{DB_NAME}"
 
 KEYBOARD = {
     'INFO': emojize(":speech_baloon: О боте 'Learning English Vocabulary'"),
-    'SETTINGS': emojize(':gear: Настройки'),
-    'NEXT_STEP': emojize(':right_arrow: Дальше'),
-    'ADD_WORD': emojize(':plus: Добавить слово', variant='emoji_type'),
-    'DELETE_WORD': emojize(':minus: Удалить слово',),
-    'EXIT': emojize(':cross_mark: Выход'),
-    'RUS': emojize('🇷🇺'),
-    'ENG': emojize('🇺🇲')
+    'MENU': emojize(":gear: Меню"),
+    'SETTINGS': emojize(":wrench: Настройки"),
+    'NEXT_STEP': emojize(":right_arrow: Дальше"),
+    'ADD_WORD': emojize(":plus: Добавить слово"),
+    'DELETE_WORD': emojize(":minus: Удалить слово"),
+    'EXIT': emojize(":cross_mark: Выход"),
+    'RUS': emojize("🇷🇺"),
+    'ENG': emojize("🇺🇲")
 }
 
 CATEGORY = {
@@ -37,5 +38,6 @@ COMMANDS = {
     'START': "start",
     'HELP': "help",
     'CARDS': "cards",
-    'PLAY': "play"
+    'PLAY': "play",
+    'NEXT_STEP': "дальше"
 }
