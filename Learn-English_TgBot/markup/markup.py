@@ -27,11 +27,22 @@ class Keyboards:
         self.markup.row(item_buttons[2], item_buttons[3])
         return self.markup
 
-    def get_next_word_keyboard(self, user_id):
+    def get_next_word_keyboard(self, user_id: int):
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         self.markup = self._cards_desk(user_id)
         menu_button = self.set_command_button('MENU')
         next_step_button = self.set_command_button('NEXT_STEP')
         self.markup.row(menu_button, next_step_button)
         self.active_keyboard = self.markup
+        return self.markup
+
+    def get_menu_keyboard(self):
+        self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        add_word_button = self.set_command_button('ADD_WORD')
+        delete_word_button = self.set_command_button('DELETE_WORD')
+        settings_button = self.set_command_button('SETTINGS')
+        back_button = self.set_command_button('BACK')
+        info_button = self.set_command_button('INFO')
+        self.markup.row(add_word_button, delete_word_button)
+        self.markup.row(back_button, settings_button, info_button)
         return self.markup

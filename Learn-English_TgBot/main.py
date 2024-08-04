@@ -1,5 +1,5 @@
 from settings import config
-from telebot import types, TeleBot
+from telebot import TeleBot
 from handlers.handler_main import HandlerMain
 
 

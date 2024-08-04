@@ -11,19 +11,21 @@ USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 PORT = os.getenv('PORT')
 URL = os.getenv('URL')
+WORDS_LIMIT = 10
 VERSION = '1.0.0'
 AUTHOR = 'InnCent'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DSN = f"{DIALECT}://{USERNAME}:{PASSWORD}@{URL}:{PORT}/{DB_NAME}"
 
 KEYBOARD = {
-    'INFO': emojize(":speech_baloon: О боте 'Learning English Vocabulary'"),
+    'INFO': emojize("💬 INFO о боте"),
     'MENU': emojize(":gear: Меню"),
     'SETTINGS': emojize(":wrench: Настройки"),
     'NEXT_STEP': emojize(":right_arrow: Дальше"),
     'ADD_WORD': emojize(":plus: Добавить слово"),
     'DELETE_WORD': emojize(":minus: Удалить слово"),
-    'EXIT': emojize(":cross_mark: Выход"),
+    'BACK': emojize("🔙 Назад"),
+    'COPY': emojize(":copyright:"),
     'RUS': emojize("🇷🇺"),
     'ENG': emojize("🇺🇲")
 }
@@ -39,5 +41,4 @@ COMMANDS = {
     'HELP': "help",
     'CARDS': "cards",
     'PLAY': "play",
-    'NEXT_STEP': "дальше"
 }
