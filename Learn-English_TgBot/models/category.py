@@ -7,9 +7,7 @@ class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
-    eng_name = Column(String, default="common")
-    rus_name = Column(String, default="общие")
-    UniqueConstraint(eng_name, rus_name, name='eng_rus_name')
+    name = Column(String, unique=True, default="общие")
     word = relationship("Word", secondary="category_word", back_populates="category")
 
     def __str__(self):

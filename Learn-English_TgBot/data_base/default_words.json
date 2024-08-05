@@ -1,4 +1,5 @@
 [
+  {"model": "bot_user", "fields": {"name": "InnCent"}},
   {"model": "word", "pk": 1, "fields": {"eng_title": "car", "rus_title": "автомобиль"}},
   {"model": "word", "pk": 2, "fields": {"eng_title": "plane", "rus_title": "самолет"}},
   {"model": "word", "pk": 3, "fields": {"eng_title": "train", "rus_title": "поезд"}},
@@ -9,6 +10,5 @@
   {"model": "word", "pk": 8, "fields": {"eng_title": "shirt", "rus_title": "рубашка"}},
   {"model": "word", "pk": 9, "fields": {"eng_title": "uncle", "rus_title": "дядя"}},
   {"model": "word", "pk": 10, "fields": {"eng_title": "father", "rus_title": "отец"}},
-  {"model": "bot_user", "fields": {"name": "InnCent"}},
-  {"model": "category", "pk": 1, "fields": {"eng_name": "common", "rus_name": "общие"}}
+  {"model": "category", "pk": 1, "fields": {"name": "общие"}}
 ]

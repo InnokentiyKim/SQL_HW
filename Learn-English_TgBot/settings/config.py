@@ -32,8 +32,15 @@ KEYBOARD = {
 
 CATEGORY = {
     'COMMON': 1,
-    'ANIMALS': 2,
-    'COUNTRIES': 3
+    'TRANSPORT': 2,
+    'ANIMALS': 3,
+    'CLOTHES': 4,
+}
+
+USER_STATES = {
+    'PLAYING': 1,
+    'CHANGING_DATA': 2,
+    'CONFIGURING': 3,
 }
 
 COMMANDS = {

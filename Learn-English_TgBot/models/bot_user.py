@@ -6,7 +6,7 @@ class BotUser(Base):
     __tablename__ = 'bot_user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, default=f"User_{id}")
     number_of_attempts = Column(Integer, default=0)
     successful_attempts = Column(Integer, default=0)
     success_streak = Column(Integer, default=0)
