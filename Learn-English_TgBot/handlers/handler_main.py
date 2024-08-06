@@ -1,12 +1,14 @@
 from handlers.handler import Handler
 from settings.config import COMMANDS, KEYBOARD, USER_STATES
 from settings.message import MESSAGES
+import telebot.types as tbtypes
 
 
 class HandlerMain(Handler):
     def __init__(self, bot):
         super().__init__(bot)
         self.current_state = USER_STATES['PLAYING']
+        self.current_message = None
 
     def pressed_button_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -28,26 +30,51 @@ class HandlerMain(Handler):
         self.bot.send_message(message.chat.id, f"{KEYBOARD['MENU']}", reply_markup=menu_keyboard)
         return menu_keyboard
 
-    def _get_message(self, message):
+    def _get_new_rus_word(self, message):
+        self.current_message = message
+        self.pressed_button_add_word(message)
         return message
 
+    def _change_state(self, state):
+        self.current_state = state
+
     def pressed_button_add_word(self, message):
-        self.current_state = USER_STATES['CHANGING_DATA']
         user_id = int(message.from_user.id)
-        self.bot.send_message(message.chat.id, f"{MESSAGES['ADD_WORD_RUS']}")
-        self.bot.message_handlers.append(self._get_message)
-        word_rus_title = self.bot.message_handlers[0](message)
-        self.bot.send_message(message.chat.id, f"{MESSAGES['ADD_WORD_RUS']}")
-        word_eng_title = self.bot.message_handlers[1](message)
-        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title)
+        word_rus_title = "Мое новое слово"
+        word_eng_title = "My new word"
+        word_category = "My new category"
+        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title, word_category)
         if word_added:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено")
+            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено",
+                                  reply_markup=self.keyboards.active_keyboard)
         else:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует")
+            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует",
+                                  reply_markup=self.keyboards.active_keyboard)
+        # self.bot.send_message(message.chat.id, f"{MESSAGES['ADD_WORD_RUS']}")
+        # word_rus_title = self.current_message.text
+        # self.bot.send_message(self.current_message.chat.id, f"{MESSAGES['ADD_WORD_ENG']}")
+        # word_eng_title = self.current_message.text
+        # self.bot.send_message(self.current_message.chat.id, f"{MESSAGES['ADD_CATEGORY']}")
+        # words_category = self.current_message.text
+        # word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title, words_category)
+        # if word_added:
+        #     self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено")
+        # else:
+        #     self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует")
+        # self.current_state = USER_STATES['PLAYING']
+        # main_keyboard = self.keyboards.active_keyboard
+        # self.bot.send_message(message.chat.id, f"{KEYBOARD['MENU']}", reply_markup=main_keyboard)
 
     def pressed_button_delete_word(self, message):
         user_id = int(message.from_user.id)
-        self.DB.delete_word(user_id)
+        word = "lion"
+        word_deleted = self.DB.delete_word(user_id, word)
+        if word_deleted:
+            self.bot.send_message(message.chat.id, f"Слово {word} удалено",
+                                  reply_markup=self.keyboards.active_keyboard)
+        else:
+            self.bot.send_message(message.chat.id, f"Слово {word} не существует",
+                                  reply_markup=self.keyboards.active_keyboard)
 
     def pressed_button_settings(self, message):
         pass
@@ -57,7 +84,7 @@ class HandlerMain(Handler):
 
     def pressed_button_back(self, message):
         main_keyboard = self.keyboards.active_keyboard
-        self.bot.send_message(message.chat.id, f"{KEYBOARD['MENU']}", reply_markup=main_keyboard)
+        self.bot.send_message(message.chat.id, f"{KEYBOARD['BACK']}", reply_markup=main_keyboard)
 
     def pressed_button_next(self, message):
         user_id = int(message.from_user.id)
@@ -99,6 +126,7 @@ class HandlerMain(Handler):
                 elif message.text == KEYBOARD['BACK']:
                     self.pressed_button_back(message)
                 elif message.text == KEYBOARD['ADD_WORD']:
+                    self.current_state = USER_STATES['CHANGING_DATA']
                     self.pressed_button_add_word(message)
                 elif message.text == KEYBOARD['DELETE_WORD']:
                     self.pressed_button_delete_word(message)
@@ -108,7 +136,14 @@ class HandlerMain(Handler):
                     self.pressed_button_info(message)
                 else:
                     self.check_answer(message)
+
+            # @self.bot.message_handler(func=lambda message: message==KEYBOARD['DELETE_WORD'])
+            # def handle(message):
+            #     if message.text == KEYBOARD['NEXT_STEP']:
+            #         self.pressed_button_next(message)
+
         elif self.current_state == USER_STATES['CHANGING_DATA']:
             @self.bot.message_handler(func=lambda message: True)
-            def handle_text(message):
-                self._get_message(message)
+            def handle(message):
+                self.bot.send_reply(message)
+                self._get_new_rus_word(message)

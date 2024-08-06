@@ -53,6 +53,10 @@ add_word_rus = """
 введите слово на русском языке:
 """
 
+add_category = """
+введите категорию для нового слова:
+"""
+
 MESSAGES = {
     'HELP': help,
     'START': start,
@@ -60,4 +64,5 @@ MESSAGES = {
     'INFO': info,
     'ADD_WORD_ENG': add_word_eng,
     'ADD_WORD_RUS': add_word_rus,
+    'ADD_CATEGORU': add_category,
 }

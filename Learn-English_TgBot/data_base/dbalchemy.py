@@ -27,6 +27,7 @@ class DBManager(metaclass=Singleton):
         Session = sessionmaker(bind=self.engine)
         self._session = Session()
         Base.metadata.create_all(self.engine)
+        self.current_state = None
         self.user_words = None
         self.target_word = None
         self.viewed_words = []
@@ -101,9 +102,11 @@ class DBManager(metaclass=Singleton):
     def _find_category(self, user_id: int, name: str) -> int | None:
         name = name.lower().strip()
         with self._session as session:
-            return session.query(Category.id).join(CategoryWord, Category.id == CategoryWord.category_id)\
+            result = session.query(Category.id).join(CategoryWord, Category.id == CategoryWord.category_id)\
                 .join(Word, CategoryWord.word_id == Word.id)\
-                .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).scalar()
+                .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
+            print(result)
+            return result
 
     def _check_new_word(self, user_id, word, eng=False) -> bool:
         word = word.lower().strip()
@@ -123,7 +126,7 @@ class DBManager(metaclass=Singleton):
                 new_category_word = []
                 if category != "общие":
                     category_id = self._find_category(user_id, category)
-                    if not category_id:
+                    if category_id is None:
                         new_category = Category(name=category)
                         session.add(new_category)
                         session.commit()
@@ -136,5 +139,14 @@ class DBManager(metaclass=Singleton):
                 return True
         return False
 
-    def delete_word(self, user_id):
-        pass
+    def delete_word(self, user_id: int, word: str) -> bool:
+        with self._session as session:
+            word_exist = session.query(Word).filter(Word.user_id == user_id)\
+                .filter(Word.rus_title.ilike(f"{word}") | Word.eng_title.ilike(f"{word}")).first()
+        if word_exist:
+            session.delete(word_exist)
+            session.commit()
+            return True
+        else:
+            return False
+
