@@ -38,9 +38,11 @@ CATEGORY = {
 }
 
 USER_STATES = {
-    'PLAYING': 1,
-    'CHANGING_DATA': 2,
-    'CONFIGURING': 3,
+    'START': 1,
+    'PLAYING': 2,
+    'ADDING_DATA': 3,
+    'DELETING_DATA': 4,
+    'CONFIGURING': 5,
 }
 
 COMMANDS = {

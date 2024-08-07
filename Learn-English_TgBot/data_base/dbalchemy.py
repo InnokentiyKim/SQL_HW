@@ -27,24 +27,17 @@ class DBManager(metaclass=Singleton):
         Session = sessionmaker(bind=self.engine)
         self._session = Session()
         Base.metadata.create_all(self.engine)
+        self.user_states = {}
         self.current_state = None
         self.user_words = None
         self.target_word = None
         self.viewed_words = []
 
-    # def use_session(self):
-    #     def decorator(func):
-    #         @wraps(func)
-    #         def wrapper(*args, **kwargs):
-    #             with self._session as session:
-    #                 return func(session, *args, **kwargs)
-    #         return wrapper
-    #     return decorator
-
-    def identified_user(self, user_id: int) -> bool:
+    def identified_user(self, user_id: int) -> int | None:
         with self._session as session:
-            familiar = session.query(BotUser.id).filter(BotUser.id == user_id).first()
-            return familiar is not None
+            familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
+            print(familiar, familiar.id) if familiar else print(None)
+            return familiar.id if familiar else None
 
     def _get_random_cards(self, user_id: int, amount=4):
         with self._session as session:
@@ -60,37 +53,35 @@ class DBManager(metaclass=Singleton):
     def close(self):
         self._session.close()
 
-    # def init_default_cards(self, user_id, user_name: str | None = None):
-    #     models_data = load_data_from_json('source/default_words.json')
-    #     new_user = BotUser(id=user_id, name=user_name)
-    #     with self._session as session:
-    #         session.add(new_user)
-    #         session.commit()
-    #         session.add_all(models_data)
-    #         session.commit()
-
-    def init_default_cards(self, user_id, user_name: str | None = None):
+    def init_default_cards(self, user_id: int) -> bool:
         try:
             with open('data_base/default_words.json') as file:
                 default_words = json.load(file)
         except FileNotFoundError:
             print('File not found')
-            return
+            return False
         models = {'bot_user': BotUser, 'word': Word, 'category': Category}
+        words_list = []
+        category_list = []
         category_word_list = []
         for line in default_words:
             model = models[line.get("model")]
             if line.get("model") == "word":
-                self._session.add(model(user_id=user_id, **line.get("fields")))
-                category_word_list.append(CategoryWord(category_id=1, word_id=line.get("pk")))
-            elif line.get("model") == "bot_user":
-                self._session.add(model(id=user_id, **line.get("fields")))
+                words_list.append(Word(user_id=user_id, **line.get("fields")))
+                category_word_list.append(CategoryWord(category_id=CATEGORY['COMMON'], word_id=line.get("pk")))
             elif line.get("model") == "category":
-                self._session.add(model(**line.get("fields")))
-        self._session.commit()
-        self._session.add_all(category_word_list)
-        self._session.commit()
-        self.close()
+                category_list.append(Category(**line.get("fields")))
+        with self._session as session:
+            bot_user = BotUser(id=user_id, name="InnCent")
+            session.add(bot_user)
+            session.commit()
+            session.add_all(words_list)
+            session.flush()
+            session.add_all(category_list)
+            session.flush()
+            session.add_all(category_word_list)
+            session.commit()
+        return True
 
     def _find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
         eng_title = eng_title.lower().strip()
@@ -102,11 +93,10 @@ class DBManager(metaclass=Singleton):
     def _find_category(self, user_id: int, name: str) -> int | None:
         name = name.lower().strip()
         with self._session as session:
-            result = session.query(Category.id).join(CategoryWord, Category.id == CategoryWord.category_id)\
+            category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id)\
                 .join(Word, CategoryWord.word_id == Word.id)\
                 .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
-            print(result)
-            return result
+            return category.id if category else None
 
     def _check_new_word(self, user_id, word, eng=False) -> bool:
         word = word.lower().strip()
@@ -122,14 +112,14 @@ class DBManager(metaclass=Singleton):
             with self._session as session:
                 new_word = Word(rus_title=rus_title, eng_title=eng_title, user_id=user_id)
                 session.add(new_word)
-                session.commit()
+                session.flush()
                 new_category_word = []
                 if category != "общие":
                     category_id = self._find_category(user_id, category)
                     if category_id is None:
                         new_category = Category(name=category)
                         session.add(new_category)
-                        session.commit()
+                        session.flush()
                         new_category_word.append(CategoryWord(category_id=new_category.id, word_id=new_word.id))
                     else:
                         new_category_word.append(CategoryWord(category_id=category_id, word_id=new_word.id))
@@ -149,4 +139,3 @@ class DBManager(metaclass=Singleton):
             return True
         else:
             return False
-

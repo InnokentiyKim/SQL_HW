@@ -16,8 +16,8 @@ class Word(Base):
     successful_attempts = Column(Integer, default=0)
     success_streak = Column(Integer, default=0)
     UniqueConstraint(rus_title, eng_title, name='rus_eng_title')
-    user_id = Column(Integer, ForeignKey('bot_user.id'))
-    user = relationship(BotUser, backref=backref("word"), cascade="delete, all")
+    user_id = Column(Integer, ForeignKey('bot_user.id', ondelete='CASCADE'))
+    user = relationship(BotUser, backref=backref("word"), )
     category = relationship("Category", secondary="category_word", back_populates="word")
 
     def __str__(self):

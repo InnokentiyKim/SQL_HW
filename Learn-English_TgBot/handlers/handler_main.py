@@ -20,7 +20,7 @@ class HandlerMain(Handler):
         user_id = int(message.from_user.id)
         user_name = message.from_user.first_name
         if not self.DB.identified_user(user_id):
-            self.DB.init_default_cards(user_id, user_name)
+            self.DB.init_default_cards(user_id)
         main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
         self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
                                                f"{self.DB.target_word.rus_title}", reply_markup=main_keyboard)
@@ -43,7 +43,7 @@ class HandlerMain(Handler):
         word_rus_title = "Мое новое слово"
         word_eng_title = "My new word"
         word_category = "My new category"
-        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title, word_category)
+        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title)
         if word_added:
             self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено",
                                   reply_markup=self.keyboards.active_keyboard)
@@ -101,49 +101,49 @@ class HandlerMain(Handler):
                                   reply_markup=self.keyboards.active_keyboard)
 
     def handle(self):
-        if self.current_state == USER_STATES['PLAYING']:
-            @self.bot.message_handler(commands=[COMMANDS['HELP']])
-            def handle(message):
-                if message.text == '/help':
-                    self.pressed_button_help(message)
+        @self.bot.message_handler(commands=[COMMANDS['HELP']])
+        def handle(message):
+            if message.text == '/help':
+                self.pressed_button_help(message)
 
-            @self.bot.message_handler(commands=[COMMANDS['START']])
-            def handle(message):
-                if message.text == '/start':
-                    self.pressed_button_start(message)
+        @self.bot.message_handler(commands=[COMMANDS['START']])
+        def handle(message):
+            if message.text == '/start':
+                self.pressed_button_start(message)
 
-            @self.bot.message_handler(commands=[COMMANDS['CARDS']])
-            def handle(message):
-                if message.text == '/cards':
-                    self.pressed_button_cards(message)
+        @self.bot.message_handler(commands=[COMMANDS['CARDS']])
+        def handle(message):
+            if message.text == '/cards':
+                self.pressed_button_cards(message)
 
-            @self.bot.message_handler(func=lambda message: True)
-            def handle(message):
+        @self.bot.message_handler(func=lambda message: True)
+        def handle(message):
+            chat_id = message.chat.id
+            if chat_id not in self.DB.user_states:
+                self.DB.user_states[chat_id] = USER_STATES['START']
+            if self.DB.user_states[chat_id] == USER_STATES['START']:
                 if message.text == KEYBOARD['NEXT_STEP']:
+                    self.DB.user_states[chat_id] = USER_STATES['PLAYING']
                     self.pressed_button_next(message)
                 elif message.text == KEYBOARD['MENU']:
+                    self.DB.user_states[chat_id] = USER_STATES['START']
                     self.pressed_button_menu(message)
                 elif message.text == KEYBOARD['BACK']:
+                    self.DB.user_states[chat_id] = USER_STATES['PLAYING']
                     self.pressed_button_back(message)
                 elif message.text == KEYBOARD['ADD_WORD']:
-                    self.current_state = USER_STATES['CHANGING_DATA']
-                    self.pressed_button_add_word(message)
+                    self.current_state = USER_STATES['ADDING_DATA']
                 elif message.text == KEYBOARD['DELETE_WORD']:
-                    self.pressed_button_delete_word(message)
+                    self.current_state = USER_STATES['DELETING_DATA']
                 elif message.text == KEYBOARD['SETTINGS']:
                     self.pressed_button_settings(message)
                 elif message.text == KEYBOARD['INFO']:
                     self.pressed_button_info(message)
                 else:
                     self.check_answer(message)
-
-            # @self.bot.message_handler(func=lambda message: message==KEYBOARD['DELETE_WORD'])
-            # def handle(message):
-            #     if message.text == KEYBOARD['NEXT_STEP']:
-            #         self.pressed_button_next(message)
-
-        elif self.current_state == USER_STATES['CHANGING_DATA']:
-            @self.bot.message_handler(func=lambda message: True)
-            def handle(message):
-                self.bot.send_reply(message)
-                self._get_new_rus_word(message)
+            elif self.DB.user_states[chat_id] == USER_STATES['ADDING_DATA']:
+                self.pressed_button_add_word(message)
+                self.DB.user_states[chat_id] = USER_STATES['START']
+            elif self.DB.user_states[chat_id] == USER_STATES['DELETING_DATA']:
+                self.pressed_button_delete_word(message)
+                self.DB.user_states[chat_id] = USER_STATES['START']

@@ -10,5 +10,5 @@
   {"model": "word", "pk": 8, "fields": {"eng_title": "shirt", "rus_title": "рубашка"}},
   {"model": "word", "pk": 9, "fields": {"eng_title": "uncle", "rus_title": "дядя"}},
   {"model": "word", "pk": 10, "fields": {"eng_title": "father", "rus_title": "отец"}},
-  {"model": "category", "pk": 1, "fields": {"name": "общие"}}
+  {"model": "category", "pk": 1, "fields": {"id": 1, "name": "общие"}}
 ]
