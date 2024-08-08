@@ -1,4 +1,4 @@
-from settings.config import VERSION, AUTHOR, COMMANDS, KEYBOARD
+from settings.config import settings, COMMANDS, KEYBOARD
 
 
 help = f"""
@@ -10,8 +10,8 @@ help = f"""
 -<b>({COMMANDS['CARDS']}) - </b><i>показать карточки слов</i>
 -<b>({COMMANDS['PLAY']}) - </b><i>играть</i>
 
-<i>Версия: </i><b>{VERSION}</b>
-<i>Автор: </i><b>{AUTHOR}</b>
+<i>Версия: </i><b>{settings.VERSION}</b>
+<i>Автор: </i><b>{settings.AUTHOR}</b>
 """
 
 info = f"""
@@ -27,8 +27,8 @@ info = f"""
 -<b>({KEYBOARD['DELETE_WORD']}) - </b><i>удалить слово</i>
 
 <i>Общая информация:</i>
--<b>версия программы - </b><i>({VERSION})</i>
--<b>разработчик - </b><i>({AUTHOR})</i>
+-<b>версия программы - </b><i>({settings.VERSION})</i>
+-<b>разработчик - </b><i>({settings.AUTHOR})</i>
 
 <b>{KEYBOARD['COPY']}<i>Иннокентий Ким</i></b>
 """

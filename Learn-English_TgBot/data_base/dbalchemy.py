@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, insert
 from sqlalchemy.orm import sessionmaker
 from data_base.db_core import Base
-from settings.config import DSN, CATEGORY
+from settings.config import settings, CATEGORY
 from models.category import Category
 from models.bot_user import BotUser
 from models.word import Word
@@ -23,12 +23,11 @@ class Singleton(type):
 
 class DBManager(metaclass=Singleton):
     def __init__(self):
-        self.engine = create_engine(DSN)
+        self.engine = create_engine(settings.DSN, echo=True)
         Session = sessionmaker(bind=self.engine)
         self._session = Session()
         Base.metadata.create_all(self.engine)
         self.user_states = {}
-        self.current_state = None
         self.user_words = None
         self.target_word = None
         self.viewed_words = []
@@ -60,25 +59,21 @@ class DBManager(metaclass=Singleton):
         except FileNotFoundError:
             print('File not found')
             return False
-        models = {'bot_user': BotUser, 'word': Word, 'category': Category}
         words_list = []
-        category_list = []
-        category_word_list = []
         for line in default_words:
-            model = models[line.get("model")]
-            if line.get("model") == "word":
-                words_list.append(Word(user_id=user_id, **line.get("fields")))
-                category_word_list.append(CategoryWord(category_id=CATEGORY['COMMON'], word_id=line.get("pk")))
-            elif line.get("model") == "category":
-                category_list.append(Category(**line.get("fields")))
+            words_list.append(Word(**line, user_id=user_id))
         with self._session as session:
             bot_user = BotUser(id=user_id, name="InnCent")
             session.add(bot_user)
             session.commit()
             session.add_all(words_list)
             session.flush()
-            session.add_all(category_list)
+            category = Category(name="общие")
+            session.add(category)
             session.flush()
+            category_word_list = []
+            for word in words_list:
+                category_word_list.append(CategoryWord(category_id=category.id, word_id=word.id))
             session.add_all(category_word_list)
             session.commit()
         return True
@@ -96,6 +91,7 @@ class DBManager(metaclass=Singleton):
             category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id)\
                 .join(Word, CategoryWord.word_id == Word.id)\
                 .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
+            print(category.id) if category else print("No category")
             return category.id if category else None
 
     def _check_new_word(self, user_id, word, eng=False) -> bool:
@@ -113,18 +109,20 @@ class DBManager(metaclass=Singleton):
                 new_word = Word(rus_title=rus_title, eng_title=eng_title, user_id=user_id)
                 session.add(new_word)
                 session.flush()
-                new_category_word = []
                 if category != "общие":
                     category_id = self._find_category(user_id, category)
-                    if category_id is None:
+                    if not category_id:
                         new_category = Category(name=category)
                         session.add(new_category)
                         session.flush()
-                        new_category_word.append(CategoryWord(category_id=new_category.id, word_id=new_word.id))
+                        new_category_word = CategoryWord(category_id=new_category.id, word_id=new_word.id)
+                        session.add(new_category_word)
                     else:
-                        new_category_word.append(CategoryWord(category_id=category_id, word_id=new_word.id))
-                new_category_word.append(CategoryWord(category_id=CATEGORY['COMMON'], word_id=new_word.id))
-                session.add_all(new_category_word)
+                        new_category_word = (CategoryWord(category_id=category_id, word_id=new_word.id))
+                        session.add(new_category_word)
+                session.commit()
+                extra_category_word = (CategoryWord(category_id=CATEGORY['COMMON'], word_id=new_word.id))
+                session.add(extra_category_word)
                 session.commit()
                 return True
         return False

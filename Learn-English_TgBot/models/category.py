@@ -7,7 +7,7 @@ class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, default="общие")
+    name = Column(String, unique=True)
     word = relationship("Word", secondary="category_word", back_populates="category")
 
     def __str__(self):

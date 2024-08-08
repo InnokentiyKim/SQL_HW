@@ -1,15 +1,15 @@
-from settings import config
+from settings.config import settings
 from telebot import TeleBot
 from handlers.handler_main import HandlerMain
 
 
 class TelBot:
 
-    __version__ = config.VERSION
-    __author__ = config.AUTHOR
+    __version__ = settings.VERSION
+    __author__ = settings.AUTHOR
 
     def __init__(self):
-        self.token = config.TOKEN
+        self.token = settings.TOKEN
         self.bot = TeleBot(self.token)
         self.handler = HandlerMain(self.bot)
 
