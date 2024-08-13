@@ -1,6 +1,6 @@
 from handlers.handler import Handler
 from settings.config import COMMANDS, KEYBOARD, USER_STATES
-from settings.message import MESSAGES
+from settings.messages import MESSAGES
 from transitions import Machine
 import requests
 
@@ -82,7 +82,8 @@ class HandlerMain(Handler):
         pass
 
     def pressed_button_info(self, message):
-        self.bot.send_message(message.chat.id, MESSAGES['INFO'], parse_mode='html')
+        menu_keyboard = self.keyboards.get_menu_keyboard()
+        self.bot.send_message(message.chat.id, MESSAGES['INFO'], reply_markup=menu_keyboard, parse_mode='html')
 
     def pressed_button_back(self, message):
         main_keyboard = self.keyboards.active_keyboard
@@ -95,14 +96,19 @@ class HandlerMain(Handler):
                                                f"{self.DB.target_word.rus_title}", reply_markup=main_keyboard)
 
     def check_answer(self, message):
-        answer = str(message.text).lower()
-        if self.DB.target_word.eng_title == answer:
-            self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.keyboards.active_keyboard)
-            print(self.get_words_description(self.DB.target_word.eng_title))
+        if not self.DB.is_answered:
+            answer = str(message.text).lower()
+            if self.DB.target_word.eng_title == answer:
+                self.DB.is_answered = True
+                self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.keyboards.active_keyboard)
+                print(self.get_words_description(self.DB.target_word.eng_title))
+            else:
+                self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
+                self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']}"
+                                                       f"{self.DB.target_word.rus_title}",
+                                      reply_markup=self.keyboards.active_keyboard)
         else:
-            self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
-            self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']}"
-                                                   f"{self.DB.target_word.rus_title}",
+            self.bot.send_message(message.chat.id, "Вы уже отгадали это слово. Нажмите 'Далее'",
                                   reply_markup=self.keyboards.active_keyboard)
 
     def handle(self):
@@ -130,14 +136,14 @@ class HandlerMain(Handler):
 
         def get_rus_word(message):
             chat_id = message.chat.id
-            self.bot.send_message(chat_id, "Введите слово на английском: ")
             self.users[chat_id]['rus'] = message.text
+            self.bot.send_message(chat_id, "Введите слово на английском: ")
             self.bot.register_next_step_handler(message, get_eng_word)
 
         def get_eng_word(message):
             chat_id = message.chat.id
-            self.bot.send_message(chat_id, "Введите категорию: ")
             self.users[chat_id]['eng'] = message.text
+            self.bot.send_message(chat_id, "Введите категорию: ")
             self.bot.register_next_step_handler(message, get_category)
 
         def get_category(message):

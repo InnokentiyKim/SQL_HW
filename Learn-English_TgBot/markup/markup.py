@@ -28,6 +28,7 @@ class Keyboards:
         return self.markup
 
     def get_next_word_keyboard(self, user_id: int):
+        self.DB.is_answered = False
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         self.markup = self._cards_desk(user_id)
         menu_button = self.set_command_button('MENU')

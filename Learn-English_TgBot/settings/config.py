@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     PASSWORD = os.getenv('PASSWORD')
     PORT = os.getenv('PORT')
     URL = os.getenv('URL')
+    WORDS_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/"
     WORDS_LIMIT = 10
     VERSION = '1.0.0'
     AUTHOR = 'InnCent'

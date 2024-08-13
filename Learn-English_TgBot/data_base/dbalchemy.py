@@ -30,6 +30,7 @@ class DBManager(metaclass=Singleton):
         self.user_states = {}
         self.user_words = None
         self.target_word = None
+        self.is_answered = False
         self.viewed_words = []
 
     def identified_user(self, user_id: int) -> int | None:
@@ -59,22 +60,14 @@ class DBManager(metaclass=Singleton):
         except FileNotFoundError:
             print('File not found')
             return False
-        words_list = []
-        for line in default_words:
-            words_list.append(Word(**line, user_id=user_id))
+        user = BotUser(id=user_id)
+        category = Category()
         with self._session as session:
-            bot_user = BotUser(id=user_id, name="InnCent")
-            session.add(bot_user)
-            session.commit()
-            session.add_all(words_list)
-            session.flush()
-            category = Category(name="общие")
-            session.add(category)
-            session.flush()
-            category_word_list = []
-            for word in words_list:
-                category_word_list.append(CategoryWord(category_id=category.id, word_id=word.id))
-            session.add_all(category_word_list)
+            session.add_all([user, category])
+            for word in default_words:
+                next_word = Word(**word, user=user, category=category)
+                category_word = CategoryWord(category=category, word=next_word)
+                session.add_all([next_word, category_word])
             session.commit()
         return True
 

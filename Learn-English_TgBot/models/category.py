@@ -1,14 +1,20 @@
-from sqlalchemy import Column, String, Integer, UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy import Index, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from data_base.db_core import Base
+from typing import Optional
 
 
 class Category(Base):
     __tablename__ = 'category'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    word = relationship("Word", secondary="category_word", back_populates="category")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[Optional[str]] = mapped_column(default='общие')
+    word: Mapped[list['Word']] = relationship(secondary='category_word', back_populates='category')
+
+    __table_args__ = (
+        UniqueConstraint('name'),
+        Index('name'),
+    )
 
     def __str__(self):
-        return f"{self.eng_name} {self.rus_name}"
+        return f"{self.id} {self.name}"
