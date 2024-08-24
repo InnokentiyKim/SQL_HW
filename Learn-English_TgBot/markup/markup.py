@@ -1,6 +1,6 @@
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from settings import config
-from data_base.dbalchemy import DBManager
+from data_base.db_main import DBManager
 
 
 class Keyboards:
@@ -18,12 +18,16 @@ class Keyboards:
     def set_word_button(name: str):
         return KeyboardButton(name)
 
-    def _cards_desk(self, user_id):
+    def _cards_desk(self, user_id, play_mode=0, items_in_line=2):
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         self.DB.get_next_card(user_id)
         words = self.DB.user_words
-        item_buttons = [self.set_word_button(word.eng_title) for word in words]
+        if play_mode == 0:
+            item_buttons = [[self.set_word_button(word.eng_title)] for word in words]
+        for count, item in enumerate(item_buttons):
+            self.markup.row(item)
         self.markup.row(item_buttons[0], item_buttons[1])
+        self.markup.row()
         self.markup.row(item_buttons[2], item_buttons[3])
         return self.markup
 

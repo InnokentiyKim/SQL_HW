@@ -8,9 +8,7 @@ class BotUser(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(default=f'User {id}')
-    number_of_attempts: Mapped[Optional[int]] = mapped_column(default=0)
-    successful_attempts: Mapped[Optional[int]] = mapped_column(default=0)
-    success_streak: Mapped[Optional[int]] = mapped_column(default=0)
+    user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user')
     word: Mapped[list['Word']] = relationship(back_populates='bot_user')
 
     def __str__(self):

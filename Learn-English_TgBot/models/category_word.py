@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-
 from data_base.db_core import Base
 
 

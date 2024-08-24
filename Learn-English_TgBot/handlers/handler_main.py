@@ -1,4 +1,4 @@
-from handlers.handler import Handler
+from handlers.handler_core import Handler
 from settings.config import COMMANDS, KEYBOARD, USER_STATES
 from settings.messages import MESSAGES
 from transitions import Machine

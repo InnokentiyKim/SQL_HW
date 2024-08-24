@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from data_base.db_core import Base
+from data_base.db_core import Base, Singleton
 from settings.config import settings, CATEGORY
 from models.category import Category
 from models.bot_user import BotUser
@@ -10,21 +10,10 @@ import json
 import sqlalchemy as sa
 
 
-class Singleton(type):
-    def __init__(cls, name, bases, attrs, **kwargs):
-        super().__init__(name, bases, attrs)
-        cls.__instance = None
-
-    def __call__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super().__call__(*args, **kwargs)
-        return cls.__instance
-
-
 class DBManager(metaclass=Singleton):
     def __init__(self):
         self.engine = create_engine(settings.DSN, echo=True)
-        Session = sessionmaker(bind=self.engine)
+        Session = sessionmaker(bind=self.engine, autocommit=False, expire_on_commit=False)
         self._session = Session()
         Base.metadata.create_all(self.engine)
         self.user_states = {}
