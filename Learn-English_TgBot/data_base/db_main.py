@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from data_base.db_core import Base, Singleton
+from data_base.db_core import Base, Singleton, Session, engine
 from settings.config import settings, CATEGORY
 from models.category import Category
 from models.bot_user import BotUser
@@ -12,10 +10,8 @@ import sqlalchemy as sa
 
 class DBManager(metaclass=Singleton):
     def __init__(self):
-        self.engine = create_engine(settings.DSN, echo=True)
-        Session = sessionmaker(bind=self.engine, autocommit=False, expire_on_commit=False)
         self._session = Session()
-        Base.metadata.create_all(self.engine)
+        Base.metadata.create_all(engine)
         self.user_states = {}
         self.user_words = None
         self.target_word = None
@@ -113,9 +109,8 @@ class DBManager(metaclass=Singleton):
         with self._session as session:
             word_exist = session.query(Word).filter(Word.user_id == user_id)\
                 .filter(Word.rus_title.ilike(f"{word}") | Word.eng_title.ilike(f"{word}")).first()
-        if word_exist:
-            session.delete(word_exist)
-            session.commit()
-            return True
-        else:
-            return False
+            if word_exist:
+                session.delete(word_exist)
+                session.commit()
+                return True
+        return False

@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey, CheckConstraint
 from data_base.db_core import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 
 
@@ -12,6 +12,7 @@ class WordStats(Base):
     number_of_attempts: Mapped[Optional[int]] = mapped_column(default=0)
     successful_attempts: Mapped[Optional[int]] = mapped_column(default=0)
     success_streak: Mapped[Optional[int]] = mapped_column(default=0)
+    word: Mapped['Word'] = relationship(back_populates='word_stats')
 
     __tableargs__ = (
         CheckConstraint()

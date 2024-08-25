@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from data_base.db_core import Base
 from typing import Optional
+from models.user_settings import UserSettings
+from models.user_stats import UserStats
 
 
 class BotUser(Base):
@@ -8,7 +10,8 @@ class BotUser(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(default=f'User {id}')
-    user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user')
+    user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user', uselist=False)
+    user_settings: Mapped['UserSettings'] = relationship(back_populates='bot_user', uselist=False)
     word: Mapped[list['Word']] = relationship(back_populates='bot_user')
 
     def __str__(self):

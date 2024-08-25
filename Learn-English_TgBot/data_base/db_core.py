@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from settings.config import settings
 
 
 class Base(DeclarativeBase):
@@ -8,6 +9,10 @@ class Base(DeclarativeBase):
         for col in self.__table__.columns.keys():
             cols.append(f"{col} = {getattr(self, col)}")
         return f"<{self.__class__.__name__} {', '.join(cols)}>"
+
+
+engine = create_engine(settings.DSN)
+Session = sessionmaker(bind=engine, autocommit=False, expire_on_commit=False)
 
 
 class Singleton(type):
