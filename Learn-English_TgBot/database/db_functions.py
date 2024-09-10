@@ -1,9 +1,13 @@
-from database.db_core import Base, Singleton, Session, engine
+from sqlalchemy.orm import selectinload
+from database.db_core import Base, Session, engine
+from models.user_settings import UserSettings
+from models.user_stats import UserStats
 from settings.config import settings, CategoryMode
 from models.category import Category
 from models.bot_user import BotUser
 from models.word import Word
 from models.category_word import CategoryWord
+from source.data_load import init_default_words
 import json
 import sqlalchemy as sa
 
@@ -18,16 +22,38 @@ class DBFunctions:
         self.is_answered = False
         self.viewed_words = []
 
-    def identify_user(self, user_id: int) -> int | None:
+    def _identify_user(self, user_id: int) -> int | None:
         with self._session as session:
             familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
-            print(familiar, familiar.id) if familiar else print(None)
             return familiar.id if familiar else None
 
-    def _get_random_cards(self, user_id: int, amount=4):
+    def _add_new_user(self, user_id: int, user_name: str = 'User') -> bool:
+        new_user = BotUser(id=user_id, name=user_name)
         with self._session as session:
-            random_words = session.query(Word).join(BotUser, Word.user_id == BotUser.id).filter(BotUser.id == user_id) \
-                .order_by(sa.func.random()).limit(amount).all()
+            session.add(new_user).flush()
+            user_settings = UserSettings(bot_user=new_user)
+            user_stats = UserStats(bot_user=new_user)
+            session.add_all([user_settings, user_stats])
+            session.commit()
+        return True
+
+    def load_default_users_data(self, user_id: int, user_name: str = 'User') -> bool:
+        if not self._identify_user(user_id):
+            self._add_new_user(user_id, user_name)
+            init_default_words(self._session, user_id=user_id)
+        else:
+            init_default_words(self._session, user_id=user_id)
+        return True
+
+    def _get_random_cards(self, user_id: int, word_amount=4, chunk_size=4):
+        with self._session as session:
+            random_words = (
+                session.query(Word)
+                .join(BotUser, Word.user_id == BotUser.id)
+                .filter(BotUser.id == user_id)
+                .order_by(sa.func.random())
+                .limit(chunk_size).all()
+            )
             return random_words
 
     def get_next_card(self, user_id: int) -> None:
@@ -69,7 +95,6 @@ class DBFunctions:
             category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id) \
                 .join(Word, CategoryWord.word_id == Word.id) \
                 .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
-            print(category.id) if category else print("No category")
             return category.id if category else None
 
     def _check_new_word(self, user_id, word, eng=False) -> bool:
@@ -81,8 +106,8 @@ class DBFunctions:
             return False
 
     def add_word(self, user_id, rus_title, eng_title, category="общие") -> bool:
-        word_exist = self._find_word(user_id, rus_title, eng_title)
-        if not word_exist:
+        existing_word = self._find_word(user_id, rus_title, eng_title)
+        if not existing_word:
             with self._session as session:
                 new_word = Word(rus_title=rus_title, eng_title=eng_title, user_id=user_id)
                 session.add(new_word)
@@ -107,10 +132,10 @@ class DBFunctions:
 
     def delete_word(self, user_id: int, word: str) -> bool:
         with self._session as session:
-            word_exist = session.query(Word).filter(Word.user_id == user_id) \
+            existing_word = session.query(Word).filter(Word.user_id == user_id) \
                 .filter(Word.rus_title.ilike(f"{word}") | Word.eng_title.ilike(f"{word}")).first()
-            if word_exist:
-                session.delete(word_exist)
+            if existing_word:
+                session.delete(existing_word)
                 session.commit()
                 return True
         return False
