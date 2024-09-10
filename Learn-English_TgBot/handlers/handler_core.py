@@ -1,6 +1,6 @@
 import abc
 from markup.markup import Keyboards
-from data_base.db_main import DBManager
+from database.db_main import DBManager
 
 
 class Handler(metaclass=abc.ABCMeta):

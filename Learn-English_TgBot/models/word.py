@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from data_base.db_core import Base
+from database.db_core import Base
 from models.bot_user import BotUser
 from models.category import Category
 from models.word_stats import WordStats

@@ -1,6 +1,6 @@
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from settings import config
-from data_base.db_main import DBManager
+from database.db_main import DBManager
 
 
 class Keyboards:

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-from data_base.db_core import Base
+from database.db_core import Base
 
 
 class CategoryWord(Base):
@@ -10,5 +10,5 @@ class CategoryWord(Base):
     word_id: Mapped[int] = mapped_column(ForeignKey('word.id', ondelete='CASCADE'))
 
     __table_args__ = (
-        PrimaryKeyConstraint(category_id, word_id),
+        PrimaryKeyConstraint('category_id', 'word_id'),
     )

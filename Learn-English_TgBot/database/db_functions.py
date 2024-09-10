@@ -1,5 +1,5 @@
-from data_base.db_core import Base, Singleton, Session, engine
-from settings.config import settings, CATEGORY
+from database.db_core import Base, Singleton, Session, engine
+from settings.config import settings, CategoryMode
 from models.category import Category
 from models.bot_user import BotUser
 from models.word import Word
@@ -8,7 +8,7 @@ import json
 import sqlalchemy as sa
 
 
-class DBManager(metaclass=Singleton):
+class DBFunctions:
     def __init__(self):
         self._session = Session()
         Base.metadata.create_all(engine)
@@ -18,7 +18,7 @@ class DBManager(metaclass=Singleton):
         self.is_answered = False
         self.viewed_words = []
 
-    def identified_user(self, user_id: int) -> int | None:
+    def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
             familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
             print(familiar, familiar.id) if familiar else print(None)
@@ -26,7 +26,7 @@ class DBManager(metaclass=Singleton):
 
     def _get_random_cards(self, user_id: int, amount=4):
         with self._session as session:
-            random_words = session.query(Word).join(BotUser, Word.user_id == BotUser.id).filter(BotUser.id == user_id)\
+            random_words = session.query(Word).join(BotUser, Word.user_id == BotUser.id).filter(BotUser.id == user_id) \
                 .order_by(sa.func.random()).limit(amount).all()
             return random_words
 
@@ -40,7 +40,7 @@ class DBManager(metaclass=Singleton):
 
     def init_default_cards(self, user_id: int) -> bool:
         try:
-            with open('data_base/default_words.json') as file:
+            with open('database/default_words.json') as file:
                 default_words = json.load(file)
         except FileNotFoundError:
             print('File not found')
@@ -60,14 +60,14 @@ class DBManager(metaclass=Singleton):
         eng_title = eng_title.lower().strip()
         rus_title = rus_title.lower().strip()
         with self._session as session:
-            return session.query(Word).filter(Word.user_id == user_id)\
+            return session.query(Word).filter(Word.user_id == user_id) \
                 .filter(Word.rus_title.ilike(f"{rus_title}")).filter(Word.eng_title.ilike(f"{eng_title}")).first()
 
     def _find_category(self, user_id: int, name: str) -> int | None:
         name = name.lower().strip()
         with self._session as session:
-            category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id)\
-                .join(Word, CategoryWord.word_id == Word.id)\
+            category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id) \
+                .join(Word, CategoryWord.word_id == Word.id) \
                 .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
             print(category.id) if category else print("No category")
             return category.id if category else None
@@ -99,7 +99,7 @@ class DBManager(metaclass=Singleton):
                         new_category_word = (CategoryWord(category_id=category_id, word_id=new_word.id))
                         session.add(new_category_word)
                 session.commit()
-                extra_category_word = (CategoryWord(category_id=CATEGORY['COMMON'], word_id=new_word.id))
+                extra_category_word = (CategoryWord(category_id=CategoryMode.COMMON.value, word_id=new_word.id))
                 session.add(extra_category_word)
                 session.commit()
                 return True
@@ -107,7 +107,7 @@ class DBManager(metaclass=Singleton):
 
     def delete_word(self, user_id: int, word: str) -> bool:
         with self._session as session:
-            word_exist = session.query(Word).filter(Word.user_id == user_id)\
+            word_exist = session.query(Word).filter(Word.user_id == user_id) \
                 .filter(Word.rus_title.ilike(f"{word}") | Word.eng_title.ilike(f"{word}")).first()
             if word_exist:
                 session.delete(word_exist)

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from data_base.db_core import Base
+from database.db_core import Base
 from typing import Optional
 from models.user_settings import UserSettings
 from models.user_stats import UserStats

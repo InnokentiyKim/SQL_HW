@@ -1,18 +1,19 @@
-# import json
-# from source.data_models import Word, Category, CategoryWord
-#
-#
-# def load_data_from_json(file_path) -> list | None:
-#     models = {'Word': Word, 'Category': Category, 'CategoryWord': CategoryWord}
-#     data_models = []
-#     try:
-#         with open(file_path, 'r', encoding='utf-8') as file:
-#             data = json.load(file)
-#             for line in data:
-#                 current_model = line.get("model")
-#                 model_data_dict = line.get("fields")
-#                 data_models.append(models.get(current_model)(**model_data_dict))
-#     except FileNotFoundError:
-#         print('File not found')
-#         return
-#     return data_models
+from pydantic import TypeAdapter
+from bot_logging.bot_logging import error_logging, LOGGER_PATH
+import json
+
+
+@error_logging(path=LOGGER_PATH)
+def load_data(file_path: str, ModelOrm, ModelDTO) -> list[object]:
+    with open (file_path, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    objects_list = []
+    for row in data:
+        if row.get('model') == ModelOrm.__name__:
+            valid_row = TypeAdapter(ModelDTO).validate_python(row)
+            objects_list.append(ModelOrm(**valid_row.model_dump(exclude={'model'})))
+    return objects_list
+
+default_words = load_data('source/default_words.json', Word, WordDTO)
+default_categories = load_data('source/default_words.json', Category, CategoryDTO)
+categories_words = load_data('source/default_words.json', CategoryWord, CategoryWordDTO)

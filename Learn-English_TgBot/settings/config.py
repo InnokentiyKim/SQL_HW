@@ -2,6 +2,7 @@ import os
 from emoji import emojize
 from dotenv import load_dotenv
 from pydantic.v1 import BaseSettings
+from enum import Enum
 
 load_dotenv()
 
@@ -27,32 +28,18 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+
 KEYBOARD = {
     'INFO': emojize("💬 INFO о боте"),
-    'MENU': emojize(":gear: Меню"),
-    'SETTINGS': emojize(":wrench: Настройки"),
-    'NEXT_STEP': emojize(":right_arrow: Дальше"),
-    'ADD_WORD': emojize(":plus: Добавить слово"),
-    'DELETE_WORD': emojize(":minus: Удалить слово"),
+    'MENU': emojize("⚙ Меню"),
+    'SETTINGS': emojize("🔧 Настройки"),
+    'NEXT_STEP': emojize("➡ Дальше"),
+    'ADD_WORD': emojize("➕ Добавить слово"),
+    'DELETE_WORD': emojize("❌ Удалить слово"),
     'BACK': emojize("🔙 Назад"),
     'COPY': emojize(":copyright:"),
     'RUS': emojize("🇷🇺"),
     'ENG': emojize("🇺🇲")
-}
-
-CATEGORY = {
-    'COMMON': 1,
-    'TRANSPORT': 2,
-    'ANIMALS': 3,
-    'CLOTHES': 4,
-}
-
-USER_STATES = {
-    'START': 1,
-    'PLAYING': 2,
-    'ADDING_DATA': 3,
-    'DELETING_DATA': 4,
-    'CONFIGURING': 5,
 }
 
 COMMANDS = {
@@ -61,3 +48,21 @@ COMMANDS = {
     'CARDS': "cards",
     'PLAY': "play",
 }
+
+class TranslationMode(Enum):
+    RUS_TO_ENG = 1
+    ENG_TO_RUS = 2
+
+class CategoryMode(Enum):
+    COMMON = 1
+    TRANSPORT = 2
+    ANIMALS = 3
+    CLOTHES = 4
+    COLORS = 5
+
+class UserStates(Enum):
+    START = 1
+    PLAYING = 2
+    ADDING_DATA = 3
+    DELETING_DATA = 4
+    CONFIGURING = 5
