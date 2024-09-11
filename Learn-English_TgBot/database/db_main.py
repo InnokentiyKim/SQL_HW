@@ -40,7 +40,7 @@ class DBManager(metaclass=Singleton):
 
     def init_default_cards(self, user_id: int) -> bool:
         try:
-            with open('database/default_words.json') as file:
+            with open('database/default_data.json') as file:
                 default_words = json.load(file)
         except FileNotFoundError:
             print('File not found')

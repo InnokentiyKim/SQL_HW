@@ -54,11 +54,11 @@ class TranslationMode(Enum):
     ENG_TO_RUS = 2
 
 class CategoryMode(Enum):
-    COMMON = 1
-    TRANSPORT = 2
-    ANIMALS = 3
-    CLOTHES = 4
-    COLORS = 5
+    COMMON = (1, "Общие")
+    TRANSPORT = (2, "Транспорт")
+    ANIMALS = (3, "Животные")
+    CLOTHES = (4, "Одежда")
+    COLORS = (5, "Цвета")
 
 class UserStates(Enum):
     START = 1

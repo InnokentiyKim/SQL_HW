@@ -1,0 +1,15 @@
+[
+  {"model": "Word", "id": 1, "eng_title": "car", "rus_title": "автомобиль"},
+  {"model": "Word", "id": 2, "eng_title": "plane", "rus_title": "самолет"},
+  {"model": "Word", "id": 3, "eng_title": "train", "rus_title": "поезд"},
+  {"model": "Word", "id": 4, "eng_title": "bus", "rus_title": "автобус"},
+  {"model": "Word", "id": 5, "eng_title": "elephant", "rus_title": "слон"},
+  {"model": "Word", "id": 6, "eng_title": "lion", "rus_title": "лев"},
+  {"model": "Word", "id": 7, "eng_title": "squirrel", "rus_title": "белка"},
+  {"model": "Word", "id": 8, "eng_title": "jeans", "rus_title": "джинсы"},
+  {"model": "Word", "id": 9, "eng_title": "dress", "rus_title": "платье"},
+  {"model": "Word", "id": 10, "eng_title": "shirt", "rus_title": "рубашка"},
+  {"model": "Word", "id": 11, "eng_title": "blue", "rus_title": "синий"},
+  {"model": "Word", "id": 12, "eng_title": "yellow", "rus_title": "желтый"},
+  {"model": "Word", "id": 13, "eng_title": "purple", "rus_title": "фиолетовый"}
+]
