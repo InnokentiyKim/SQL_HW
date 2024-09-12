@@ -22,6 +22,9 @@ class Settings(AdvancedBaseSettings):
     URL: str = Field(env='URL', default='localhost')
     WORDS_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/"
     WORDS_LIMIT = 10
+    TARGET_WORDS_CHUNK_SIZE = 10
+    OTHER_WORDS_CHUNK_SIZE = 50
+    WORDS_IN_CARDS = 4
     VERSION = '1.0.0'
     AUTHOR = 'InnCent'
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
