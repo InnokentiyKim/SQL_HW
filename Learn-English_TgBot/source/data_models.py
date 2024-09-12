@@ -2,6 +2,11 @@ from typing import Optional
 from pydantic import BaseModel, PositiveInt
 
 
+class UsersPlaySession(BaseModel):
+    id: Optional[PositiveInt]
+
+
+
 class BotUserDTO(BaseModel):
     id: PositiveInt
     name: Optional[str]
@@ -21,19 +26,16 @@ class UserStatsDTO(BaseModel):
 
 
 class CategoryDTO(BaseModel):
-    model: Optional[str] = 'Category'
     id: Optional[PositiveInt]
     name: str
 
 
 class CategoryWordDTO(BaseModel):
-    model: Optional[str] = 'CategoryWord'
     category_id: PositiveInt
     word_id: PositiveInt
 
 
 class WordDTO(BaseModel):
-    model: Optional[str] = 'Word'
     id: Optional[PositiveInt]
     eng_title: str
     rus_title: str

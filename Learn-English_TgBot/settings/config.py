@@ -1,25 +1,31 @@
+import enum
 import os
 from emoji import emojize
-from dotenv import load_dotenv
-from pydantic.v1 import BaseSettings
 from enum import Enum
+from pydantic.v1 import BaseSettings, Field, SecretStr
 
-load_dotenv()
+
+class AdvancedBaseSettings(BaseSettings):
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+        allow_mutation = False
 
 
-class Settings(BaseSettings):
-    TOKEN = os.getenv('TOKEN')
-    DB_NAME = os.getenv('DB_NAME')
-    DIALECT = os.getenv('DIALECT')
-    USERNAME = os.getenv('USERNAME')
-    PASSWORD = os.getenv('PASSWORD')
-    PORT = os.getenv('PORT')
-    URL = os.getenv('URL')
+class Settings(AdvancedBaseSettings):
+    TOKEN: str = Field(env='TOKEN')
+    DB_NAME: str = Field(env='DB_NAME', default='postgres')
+    DIALECT: str = Field(env='DIALECT', default='postgresql')
+    USERNAME: str = Field(env='USERNAME', default='postgres')
+    PASSWORD: SecretStr = Field(env='PASSWORD', default='postgres')
+    PORT: int = Field(env='PORT', default=5432)
+    URL: str = Field(env='URL', default='localhost')
     WORDS_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/"
     WORDS_LIMIT = 10
     VERSION = '1.0.0'
     AUTHOR = 'InnCent'
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_PATH = 'source/default_data/default_words.json'
 
     @property
     def DSN(self):
@@ -42,23 +48,27 @@ KEYBOARD = {
     'ENG': emojize("🇺🇲")
 }
 
-COMMANDS = {
-    'START': "start",
-    'HELP': "help",
-    'CARDS': "cards",
-    'PLAY': "play",
+CATEGORIES = {
+    'COMMON': {'value': 1, 'name': 'Общие'},
+    'TRANSPORT': {'value': 2, 'name': 'Транспорт'},
+    'ANIMALS': {'value': 3, 'name': 'Животные'},
+    'CLOTHES': {'value': 4, 'name': 'Одежда'},
+    'COLORS': {'value': 5, 'name': 'Цвета'}
 }
+
+
+@enum.unique
+class Commands(Enum):
+    START = 'start'
+    HELP = 'help'
+    CARDS = 'cards'
+    PLAY = 'play'
+
 
 class TranslationMode(Enum):
     RUS_TO_ENG = 1
     ENG_TO_RUS = 2
 
-class CategoryMode(Enum):
-    COMMON = (1, "Общие")
-    TRANSPORT = (2, "Транспорт")
-    ANIMALS = (3, "Животные")
-    CLOTHES = (4, "Одежда")
-    COLORS = (5, "Цвета")
 
 class UserStates(Enum):
     START = 1

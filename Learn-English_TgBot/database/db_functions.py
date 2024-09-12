@@ -1,14 +1,13 @@
-from sqlalchemy.orm import selectinload
 from database.db_core import Base, Session, engine
 from models.user_settings import UserSettings
 from models.user_stats import UserStats
-from settings.config import settings, CategoryMode
 from models.category import Category
 from models.bot_user import BotUser
 from models.word import Word
 from models.category_word import CategoryWord
-from source.data_load import init_default_words
-import json
+from models.word_stats import WordStats
+from settings.config import settings
+from source.data_load import load_words_from_json
 import sqlalchemy as sa
 
 
@@ -27,23 +26,50 @@ class DBFunctions:
             familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
             return familiar.id if familiar else None
 
-    def _add_new_user(self, user_id: int, user_name: str = 'User') -> bool:
+    def _add_new_user(self, user_id: int, user_name: str = '') -> bool:
         new_user = BotUser(id=user_id, name=user_name)
-        with self._session as session:
-            session.add(new_user).flush()
-            user_settings = UserSettings(bot_user=new_user)
-            user_stats = UserStats(bot_user=new_user)
-            session.add_all([user_settings, user_stats])
-            session.commit()
+        try:
+            with self._session as session:
+                session.add(new_user).flush()
+                user_settings = UserSettings(bot_user=new_user)
+                user_stats = UserStats(bot_user=new_user)
+                base_category = Category()
+                session.add_all([user_settings, user_stats, base_category]).flush()
+                words = load_words_from_json(settings.DATA_PATH, new_user, [base_category])
+                session.add(words).flush()
+                words_stats = [WordStats(word=word) for word in words]
+                session.add_all(words_stats)
+                session.commit()
+        except sa.exc.IntegrityError:
+            return False
+        except sa.exc.UniqueViolation:
+            return False
+        except Exception as error:
+            return False
         return True
 
-    def load_default_users_data(self, user_id: int, user_name: str = 'User') -> bool:
-        if not self._identify_user(user_id):
-            self._add_new_user(user_id, user_name)
-            init_default_words(self._session, user_id=user_id)
+    def _find_category(self, user_id: int, name: str) -> int | None:
+        name = name.lower().strip()
+        with self._session as session:
+            category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id) \
+                .join(Word, CategoryWord.word_id == Word.id) \
+                .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
+            return category.id if category else None
+
+    def _find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
+        eng_title = eng_title.capitalize().strip()
+        rus_title = rus_title.capitalize().strip()
+        with self._session as session:
+            return session.query(Word).filter(Word.user_id == user_id) \
+                .filter(Word.rus_title.ilike(f"{rus_title}")).filter(Word.eng_title.ilike(f"{eng_title}")).first()
+
+    def _check_new_word(self, user_id, word, eng=False) -> bool:
+        word = word.lower().strip()
+        if not eng:
+            with self._session as session:
+                pass
         else:
-            init_default_words(self._session, user_id=user_id)
-        return True
+            return False
 
     def _get_random_cards(self, user_id: int, word_amount=4, chunk_size=4):
         with self._session as session:
@@ -54,7 +80,7 @@ class DBFunctions:
                 .order_by(sa.func.random())
                 .limit(chunk_size).all()
             )
-            return random_words
+        return random_words
 
     def get_next_card(self, user_id: int) -> None:
         self.user_words = self._get_random_cards(user_id)
@@ -63,47 +89,6 @@ class DBFunctions:
 
     def close(self):
         self._session.close()
-
-    def init_default_cards(self, user_id: int) -> bool:
-        try:
-            with open('database/default_data.json') as file:
-                default_words = json.load(file)
-        except FileNotFoundError:
-            print('File not found')
-            return False
-        user = BotUser(id=user_id)
-        category = Category()
-        with self._session as session:
-            session.add_all([user, category])
-            for word in default_words:
-                next_word = Word(**word, user=user, category=category)
-                category_word = CategoryWord(category=category, word=next_word)
-                session.add_all([next_word, category_word])
-            session.commit()
-        return True
-
-    def _find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
-        eng_title = eng_title.lower().strip()
-        rus_title = rus_title.lower().strip()
-        with self._session as session:
-            return session.query(Word).filter(Word.user_id == user_id) \
-                .filter(Word.rus_title.ilike(f"{rus_title}")).filter(Word.eng_title.ilike(f"{eng_title}")).first()
-
-    def _find_category(self, user_id: int, name: str) -> int | None:
-        name = name.lower().strip()
-        with self._session as session:
-            category = session.query(Category).join(CategoryWord, Category.id == CategoryWord.category_id) \
-                .join(Word, CategoryWord.word_id == Word.id) \
-                .filter(Word.user_id == user_id).filter(Category.name.ilike(f"{name}")).first()
-            return category.id if category else None
-
-    def _check_new_word(self, user_id, word, eng=False) -> bool:
-        word = word.lower().strip()
-        if not eng:
-            with self._session as session:
-                pass
-        else:
-            return False
 
     def add_word(self, user_id, rus_title, eng_title, category="общие") -> bool:
         existing_word = self._find_word(user_id, rus_title, eng_title)

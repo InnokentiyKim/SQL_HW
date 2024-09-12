@@ -1,7 +1,7 @@
 [
-  {"model": "Category", "id": 1, "name": "общие"},
-  {"model": "Category", "id": 2, "name": "транспорт"},
-  {"model": "Category", "id": 3, "name": "животные"},
-  {"model": "Category", "id": 4, "name": "одежда"},
-  {"model": "Category", "id": 5, "name": "цвета"}
+  {"name": "Общие"},
+  {"name": "Транспорт"},
+  {"name": "Животные"},
+  {"name": "Одежда"},
+  {"name": "Цвета"}
 ]
