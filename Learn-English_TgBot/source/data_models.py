@@ -1,23 +1,11 @@
-from random import choice
 from typing import Optional
 from pydantic import BaseModel, PositiveInt
-from models.bot_user import BotUser
 
 
 class TargetWord(BaseModel):
-    word_id: int
+    word_id: Optional[int]
     word_title: str
-    is_answered: bool
-
-
-class UsersPlaySession(BaseModel):
-    user: Optional[BotUser]
-    target_words: Optional[list[TargetWord]]
-    viewed_words: Optional[list[TargetWord]]
-    other_words: Optional[list[str]]
-
-    def shuffle_words(self):
-        self.target_words = choice(self.target_words)
+    is_answered: int
 
 
 class BotUserDTO(BaseModel):

@@ -84,18 +84,33 @@ class DBFunctions:
     def _get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
         category = category.capitalize().strip()
-        self.id = Word.user_id == user_id
         query = (
             select(Word).filter(Word.user_id == user_id)
             .options(selectinload(Word.category))
             .options(joinedload(Word.word_stats))
             .filter(Category.name == category)
             .filter(WordStats.is_studied == is_studied)
+            .order_by(sa.func.random())
             .limit(amount)
         )
         with self._session as session:
             target_words = session.execute(query).scalars().all()
         return target_words
+
+    def _get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
+                          amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
+        category = category.capitalize().strip()
+        self.id = Word.user_id == user_id
+        query = (
+            select(Word).filter(Word.user_id == user_id)
+            .options(selectinload(Word.category))
+            .filter(Category.name == category)
+            .order_by(sa.func.random())
+            .limit(amount)
+        )
+        with self._session as session:
+            other_words = session.execute(query).scalars().all()
+        return other_words
 
 
 
