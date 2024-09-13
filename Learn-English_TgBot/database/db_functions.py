@@ -1,5 +1,4 @@
 import requests
-from sqlalchemy import select
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session
@@ -11,7 +10,7 @@ from models.word import Word
 from models.word_stats import WordStats
 from settings.config import settings, CATEGORIES
 from source.data_load import load_words_from_json
-from source.data_models import UsersPlaySession
+from source.play_session import UsersPlaySession
 import sqlalchemy as sa
 
 
@@ -52,7 +51,7 @@ class DBFunctions:
         name = name.capitalize().strip()
         with self._session as session:
             query = (
-                select(Category).filter(Category.name.ilike(f"{name}"))
+                sa.select(Category).filter(Category.name.ilike(f"{name}"))
                 .options(selectinload(Category.word))
                 .filter(Word.user_id == user_id).first()
             )
@@ -64,7 +63,7 @@ class DBFunctions:
         rus_title = rus_title.capitalize().strip()
         with self._session as session:
             query = (
-                select(Word).filter(Word.user_id == user_id)
+                sa.select(Word).filter(Word.user_id == user_id)
                 .filter(Word.rus_title.ilike(f"{rus_title}"))
                 .filter(Word.eng_title.ilike(f"{eng_title}"))
             )
@@ -75,7 +74,7 @@ class DBFunctions:
         word = word.capitalize().strip()
         with self._session as session:
             query = (
-                select(Word).filter(Word.user_id == user_id)
+                sa.select(Word).filter(Word.user_id == user_id)
                 .filter(or_(Word.rus_title.ilike(f'{word}'), Word.eng_title.ilike(f'{word}')))
             )
             selected_word = session.execute(query).scalars().first()
@@ -85,7 +84,7 @@ class DBFunctions:
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
         category = category.capitalize().strip()
         query = (
-            select(Word).filter(Word.user_id == user_id)
+            sa.select(Word).filter(Word.user_id == user_id)
             .options(selectinload(Word.category))
             .options(joinedload(Word.word_stats))
             .filter(Category.name == category)
@@ -102,7 +101,7 @@ class DBFunctions:
         category = category.capitalize().strip()
         self.id = Word.user_id == user_id
         query = (
-            select(Word).filter(Word.user_id == user_id)
+            sa.select(Word).filter(Word.user_id == user_id)
             .options(selectinload(Word.category))
             .filter(Category.name == category)
             .order_by(sa.func.random())
@@ -112,6 +111,8 @@ class DBFunctions:
             other_words = session.execute(query).scalars().all()
         return other_words
 
+    def get_next_card(self):
+        with self._session as session:
 
 
 
@@ -130,8 +131,3 @@ class DBFunctions:
         response = requests.get(self.words_api_url, params={'words': word}).json()
         description = response['description']
         return description
-
-    def get_next_card(self, user_id: int) -> None:
-        self.user_words = self._get_random_cards(user_id)
-        self.target_word = self.user_words[0]
-        self.viewed_words.append(self.target_word)

@@ -4,7 +4,12 @@ from pydantic import BaseModel, PositiveInt
 
 class TargetWord(BaseModel):
     word_id: Optional[int]
-    word_title: str
+    rus_title: str
+    eng_title: str
+    is_studied: int
+    number_of_attempts: int
+    successful_attempts: int
+    success_streak: int
     is_answered: int
 
 

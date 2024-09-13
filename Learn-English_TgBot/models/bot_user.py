@@ -1,4 +1,5 @@
-from datetime import datetime
+from sqlalchemy import DateTime
+from datetime import datetime, UTC
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database.db_core import Base
 from typing import Optional
@@ -11,8 +12,8 @@ class BotUser(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(default=f'User {id}')
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now())
-    last_seen_at: Mapped[datetime] = mapped_column(default=datetime.now())
+    created_at: Mapped[DateTime] = mapped_column(default=datetime.now(UTC), nullable=False)
+    last_seen_at: Mapped[DateTime] = mapped_column(default=datetime.now(UTC), nullable=False)
     user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user', uselist=False)
     user_settings: Mapped['UserSettings'] = relationship(back_populates='bot_user', uselist=False)
     word: Mapped[list['Word']] = relationship(back_populates='bot_user')

@@ -11,8 +11,13 @@ class UsersPlaySession:
         self.user: Optional[BotUser] = None
         self.target_words: Optional[list[TargetWord]] = None
         self.target_word_index: int = 0
+        self.is_target_list_ended: bool = False
         self.viewed_words: Optional[list[TargetWord]] = None
         self.other_words: Optional[list[str]] = None
+
+    def refresh_session(self):
+        self.target_word_index = 0
+        self.is_target_list_ended = False
 
     def get_other_words_for_card(self, amount: int = settings.WORDS_IN_CARDS - 1) -> list[Any]:
         if self.other_words and len(self.other_words) >= amount:
@@ -26,4 +31,5 @@ class UsersPlaySession:
             self.target_word_index += 1
             return target_word
         else:
+            self.is_target_list_ended = True
             return None
