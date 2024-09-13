@@ -9,9 +9,9 @@ class UsersPlaySession:
     def __init__(self):
         self.session_id: Optional[int] = None
         self.user: Optional[BotUser] = None
-        self.target_words: Optional[list[TargetWord]] = None
+        self.target_words: list[TargetWord] = []
         self.target_word_index: int = 0
-        self.is_target_list_ended: bool = False
+        self.is_target_list_ended: bool = True
         self.viewed_words: Optional[list[TargetWord]] = None
         self.other_words: Optional[list[str]] = None
 
@@ -26,7 +26,7 @@ class UsersPlaySession:
             return []
 
     def get_next_target_word(self) -> TargetWord | None:
-        if self.target_word_index < len(self.target_words):
+        if self.target_words and self.target_word_index < len(self.target_words):
             target_word = self.target_words[self.target_word_index]
             self.target_word_index += 1
             return target_word

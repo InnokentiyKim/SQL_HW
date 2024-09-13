@@ -1,4 +1,3 @@
-import requests
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session
@@ -10,14 +9,12 @@ from models.word import Word
 from models.word_stats import WordStats
 from settings.config import settings, CATEGORIES
 from source.data_load import load_words_from_json
-from source.play_session import UsersPlaySession
 import sqlalchemy as sa
 
 
 class DBFunctions:
     def __init__(self):
         self._session = Session()
-        self.play_session = UsersPlaySession()
         self.words_api_url = settings.WORDS_URL
 
     def _identify_user(self, user_id: int) -> int | None:
@@ -111,8 +108,6 @@ class DBFunctions:
             other_words = session.execute(query).scalars().all()
         return other_words
 
-    def get_next_card(self):
-        with self._session as session:
 
 
 
@@ -126,8 +121,3 @@ class DBFunctions:
                 .limit(chunk_size).all()
             )
         return random_words
-
-    def get_words_description(self, word: str) -> dict:
-        response = requests.get(self.words_api_url, params={'words': word}).json()
-        description = response['description']
-        return description

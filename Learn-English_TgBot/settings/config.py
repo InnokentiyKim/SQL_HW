@@ -59,13 +59,12 @@ CATEGORIES = {
     'COLORS': {'value': 5, 'name': 'Цвета'}
 }
 
-
-@enum.unique
-class Commands(Enum):
-    START = 'start'
-    HELP = 'help'
-    CARDS = 'cards'
-    PLAY = 'play'
+COMMANDS = {
+    'START': 'start',
+    'HELP': 'help',
+    'CARDS': 'cards',
+    'PLAY': 'play',
+}
 
 
 class TranslationMode(Enum):

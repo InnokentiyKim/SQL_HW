@@ -1,43 +1,43 @@
+from handlers.handler_core import Handler
 from settings.config import KEYBOARD
 from settings.messages import MESSAGES
 from settings.config import settings
+from play_session.session_data import UsersPlaySession
 import requests
 
 
-class HandlerFunctions:
-    def __init__(self, bot, DB, keyboards):
-        self.DB = DB
-        self.keyboards = keyboards
-        self.bot = bot
+class HandlerFunctions(Handler):
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.play_session = UsersPlaySession()
 
-    def pressed_button_help(self, message):
+    def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
 
-    def pressed_button_start(self, message):
+    def start_actions(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
 
-    def pressed_button_cards(self, message):
+    def get_cards(self, message):
         user_id = int(message.from_user.id)
+        user_name = message.from_user.first_name
         if not self.DB.identified_user(user_id):
             self.DB.init_default_cards(user_id)
         main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
         self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
                                                f"{self.DB.target_word.rus_title}", reply_markup=main_keyboard)
 
-    def _generate_url(self, base_url, word):
-        return f"{base_url}{word}"
+    @staticmethod
+    def get_words_description(word: str) -> dict:
+        response = requests.get(settings.WORDS_URL, params={'words': word}).json()
+        description = response.get('description')
+        return description
 
-    def get_words_description(self, word):
-        url = self._generate_url(settings.WORDS_URL, word)
-        description_json = requests.get(url).json()
-        return description_json
-
-    def pressed_button_menu(self, message):
+    def get_bots_menu(self, message):
         menu_keyboard = self.keyboards.get_menu_keyboard()
         self.bot.send_message(message.chat.id, f"Вы вошли в МЕНЮ", reply_markup=menu_keyboard)
         return menu_keyboard
 
-    def pressed_button_add_word(self, message, rus_word, eng_word, category):
+    def add_new_word(self, message, rus_word, eng_word, category):
         user_id = int(message.from_user.id)
         word_rus_title = rus_word
         word_eng_title = eng_word
@@ -51,7 +51,7 @@ class HandlerFunctions:
             self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует",
                                   reply_markup=menu_keyboard, parse_mode='html')
 
-    def pressed_button_delete_word(self, message, word):
+    def delete_word(self, message, word):
         user_id = int(message.from_user.id)
         word_deleted = self.DB.delete_word(user_id, word)
         menu_keyboard = self.keyboards.get_menu_keyboard()
@@ -62,18 +62,18 @@ class HandlerFunctions:
             self.bot.send_message(message.chat.id, f"Слово {word} не существует",
                                   reply_markup=menu_keyboard, parse_mode='html')
 
-    def pressed_button_settings(self, message):
+    def get_bot_settings(self, message):
         pass
 
-    def pressed_button_info(self, message):
+    def get_info(self, message):
         menu_keyboard = self.keyboards.get_menu_keyboard()
         self.bot.send_message(message.chat.id, MESSAGES['INFO'], reply_markup=menu_keyboard, parse_mode='html')
 
-    def pressed_button_back(self, message):
+    def get_step_back(self, message):
         main_keyboard = self.keyboards.active_keyboard
         self.bot.send_message(message.chat.id, f"Вы вернулись назад", reply_markup=main_keyboard, parse_mode='html')
 
-    def pressed_button_next(self, message):
+    def get_step_next(self, message):
         user_id = int(message.from_user.id)
         main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
         self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
@@ -81,7 +81,7 @@ class HandlerFunctions:
 
     def check_answer(self, message):
         if not self.DB.is_answered:
-            answer = str(message.text).lower().strip()
+            answer = str(message.text).capitalize().strip()
             if self.DB.target_word.eng_title == answer:
                 self.DB.is_answered = True
                 self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.keyboards.active_keyboard)
@@ -94,3 +94,6 @@ class HandlerFunctions:
         else:
             self.bot.send_message(message.chat.id, "Вы уже отгадали это слово. Нажмите 'Далее'",
                                   reply_markup=self.keyboards.active_keyboard)
+
+    def handle(self):
+        pass

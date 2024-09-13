@@ -1,8 +1,9 @@
 from handlers.handler_core import Handler
-from settings.config import COMMANDS, KEYBOARD, USER_STATES
+from handlers.handler_functions import HandlerFunctions
+from settings.config import COMMANDS, KEYBOARD
 from settings.messages import MESSAGES
 from transitions import Machine
-import requests
+
 
 class WordCardsBot:
     states = ['start', 'playing', 'adding_data', 'deleting_data']
@@ -20,80 +21,38 @@ class WordCardsBot:
 class HandlerMain(Handler):
     def __init__(self, bot):
         super().__init__(bot)
-        self.current_state = USER_STATES['PLAYING']
-        self.current_message = None
+        self.handler_functions = HandlerFunctions(bot)
         self.users = {}
-        self.words_desription = []
-        self.base_url = "https://api.dictionaryapi.dev/api/v2/entries/en/"
 
     def pressed_button_help(self, message):
-        self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
+        self.handler_functions.get_help(message)
 
     def pressed_button_start(self, message):
-        self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
+        self.handler_functions.start_actions(message)
 
     def pressed_button_cards(self, message):
-        user_id = int(message.from_user.id)
-        user_name = message.from_user.first_name
-        if not self.DB.identified_user(user_id):
-            self.DB.init_default_cards(user_id)
-        main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
-        self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
-                                               f"{self.DB.target_word.rus_title}", reply_markup=main_keyboard)
-    def _generate_url(self, base_url, word):
-        return f"{base_url}{word}"
-
-    def get_words_description(self, word):
-        url = self._generate_url(self.base_url, word)
-        response = requests.get(url).json()
-        return response
+        self.handler_functions.get_cards(message)
 
     def pressed_button_menu(self, message):
-        menu_keyboard = self.keyboards.get_menu_keyboard()
-        self.bot.send_message(message.chat.id, f"Вы вошли в МЕНЮ", reply_markup=menu_keyboard)
-        return menu_keyboard
+        self.handler_functions.get_bots_menu(message)
 
     def pressed_button_add_word(self, message, rus_word, eng_word, category):
-        user_id = int(message.from_user.id)
-        word_rus_title = rus_word
-        word_eng_title = eng_word
-        word_category = category
-        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title, word_category)
-        menu_keyboard = self.keyboards.get_menu_keyboard()
-        if word_added:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено",
-                                  reply_markup=menu_keyboard, parse_mode='html')
-        else:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует",
-                                  reply_markup=menu_keyboard, parse_mode='html')
+        self.handler_functions.add_new_word(message, rus_word, eng_word, category)
 
     def pressed_button_delete_word(self, message, word):
-        user_id = int(message.from_user.id)
-        word_deleted = self.DB.delete_word(user_id, word)
-        menu_keyboard = self.keyboards.get_menu_keyboard()
-        if word_deleted:
-            self.bot.send_message(message.chat.id, f"Слово {word} удалено",
-                                  reply_markup=menu_keyboard, parse_mode='html')
-        else:
-            self.bot.send_message(message.chat.id, f"Слово {word} не существует",
-                                  reply_markup=menu_keyboard, parse_mode='html')
+        self.handler_functions.delete_word(message, word)
 
     def pressed_button_settings(self, message):
         pass
 
     def pressed_button_info(self, message):
-        menu_keyboard = self.keyboards.get_menu_keyboard()
-        self.bot.send_message(message.chat.id, MESSAGES['INFO'], reply_markup=menu_keyboard, parse_mode='html')
+        self.handler_functions.get_info(message)
 
     def pressed_button_back(self, message):
-        main_keyboard = self.keyboards.active_keyboard
-        self.bot.send_message(message.chat.id, f"Вы вернулись назад", reply_markup=main_keyboard, parse_mode='html')
+        self.handler_functions.get_step_back(message)
 
     def pressed_button_next(self, message):
-        user_id = int(message.from_user.id)
-        main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
-        self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
-                                               f"{self.DB.target_word.rus_title}", reply_markup=main_keyboard)
+        self.handler_functions.get_step_next(message)
 
     def check_answer(self, message):
         if not self.DB.is_answered:
@@ -101,7 +60,6 @@ class HandlerMain(Handler):
             if self.DB.target_word.eng_title == answer:
                 self.DB.is_answered = True
                 self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.keyboards.active_keyboard)
-                print(self.get_words_description(self.DB.target_word.eng_title))
             else:
                 self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']}"
@@ -112,7 +70,7 @@ class HandlerMain(Handler):
                                   reply_markup=self.keyboards.active_keyboard)
 
     def handle(self):
-        @self.bot.message_handler(commands=[COMMANDS['HELP']])
+        @self.bot.message_handler(commands=COMMANDS['HELP'])
         def handle(message):
             if message.text == '/help':
                 self.pressed_button_help(message)
@@ -176,7 +134,7 @@ class HandlerMain(Handler):
                 self.step = "add_rus_word"
                 self.bot.send_message(message.chat.id, f"Введите слово на русском: ")
             elif message.text == KEYBOARD['DELETE_WORD']:
-                self.current_state = USER_STATES['DELETING_DATA']
+                pass
             elif message.text == KEYBOARD['SETTINGS']:
                 self.pressed_button_settings(message)
             elif message.text == KEYBOARD['INFO']:
