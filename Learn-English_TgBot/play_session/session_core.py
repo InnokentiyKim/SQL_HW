@@ -3,7 +3,7 @@ from models.bot_user import BotUser
 from source.data_models import TargetWord
 
 
-class UsersPlaySession:
+class PlaySessionCore:
     def __init__(self):
         self.session_id: Optional[int] = None
         self.user: Optional[BotUser] = None

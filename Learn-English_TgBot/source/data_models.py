@@ -1,6 +1,13 @@
 from typing import Optional
 from pydantic import BaseModel, PositiveInt
 
+class WordMain(BaseModel):
+    word_id: Optional[int]
+    rus_title: str
+    eng_title: str
+    is_studied: int
+    category_id: Optional[int]
+    user_id: Optional[int]
 
 class TargetWord(BaseModel):
     word_id: Optional[int]

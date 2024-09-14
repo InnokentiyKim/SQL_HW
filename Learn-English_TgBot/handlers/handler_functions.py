@@ -2,7 +2,7 @@ from handlers.handler_core import Handler
 from settings.config import KEYBOARD
 from settings.messages import MESSAGES
 from settings.config import settings
-from play_session.session_data import UsersPlaySession
+from play_session.session_core import UsersPlaySession
 import requests
 
 

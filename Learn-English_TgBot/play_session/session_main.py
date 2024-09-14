@@ -1,11 +1,11 @@
 from random import choices
 from typing import Any
-from session_data import UsersPlaySession
+from play_session.session_core import PlaySessionCore
 from settings.config import settings
 from source.data_models import TargetWord
 
 
-class PlaySession(UsersPlaySession):
+class PlaySession(PlaySessionCore):
     def __init__(self):
         super().__init__()
 
