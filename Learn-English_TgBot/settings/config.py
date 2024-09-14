@@ -51,6 +51,8 @@ KEYBOARD = {
     'ENG': emojize("🇺🇲")
 }
 
+KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]
+
 CATEGORIES = {
     'COMMON': {'value': 1, 'name': 'Общие'},
     'TRANSPORT': {'value': 2, 'name': 'Транспорт'},

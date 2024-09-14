@@ -2,10 +2,11 @@ from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboa
 from markup.keyboards import Keyboards
 
 
-class MarkupCore:
+class Markup:
 
     def __init__(self):
         self.keyboards = Keyboards()
+        self.active_keyboard = None
 
     @staticmethod
     def get_markup(buttons: list, items_in_line: int = 1, one_time: bool = False):

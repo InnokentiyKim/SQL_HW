@@ -1,5 +1,5 @@
 import abc
-from markup.markup import Keyboards
+from markup.markups import Keyboards
 from database.db_main import DBManager
 
 
