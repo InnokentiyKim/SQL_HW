@@ -1,22 +1,15 @@
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
-from settings import config
+from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from markup.keyboards import Keyboards
 from database.db_main import DBManager
 
 
-class Keyboards:
+class Markup:
 
     def __init__(self):
         self.markup = None
         self.DB = DBManager()
+        self.keyboards = Keyboards()
         self.active_keyboard = None
-
-    @staticmethod
-    def set_command_button(name: str):
-        return KeyboardButton(config.KEYBOARD[name])
-
-    @staticmethod
-    def set_word_button(name: str):
-        return KeyboardButton(name)
 
     def _cards_desk(self, user_id, play_mode=0, items_in_line=2):
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -35,19 +28,19 @@ class Keyboards:
         self.DB.is_answered = False
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         self.markup = self._cards_desk(user_id)
-        menu_button = self.set_command_button('MENU')
-        next_step_button = self.set_command_button('NEXT_STEP')
+        menu_button = self.keyboards.set_command_button('MENU')
+        next_step_button = self.keyboards.set_command_button('NEXT_STEP')
         self.markup.row(menu_button, next_step_button)
         self.active_keyboard = self.markup
         return self.markup
 
     def get_menu_keyboard(self):
         self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        add_word_button = self.set_command_button('ADD_WORD')
-        delete_word_button = self.set_command_button('DELETE_WORD')
-        settings_button = self.set_command_button('SETTINGS')
-        back_button = self.set_command_button('BACK')
-        info_button = self.set_command_button('INFO')
+        add_word_button = self.keyboards.set_command_button('ADD_WORD')
+        delete_word_button = self.keyboards.set_command_button('DELETE_WORD')
+        settings_button = self.keyboards.set_command_button('SETTINGS')
+        back_button = self.keyboards.set_command_button('BACK')
+        info_button = self.keyboards.set_command_button('INFO')
         self.markup.row(add_word_button, delete_word_button)
         self.markup.row(back_button, settings_button, info_button)
         return self.markup

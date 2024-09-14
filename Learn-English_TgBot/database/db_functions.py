@@ -108,16 +108,13 @@ class DBFunctions:
             other_words = session.execute(query).scalars().all()
         return other_words
 
-
-
-
-    def _get_random_cards(self, user_id: int, chunk_size=4):
-        with self._session as session:
-            random_words = (
-                session.query(Word)
-                .join(BotUser, Word.user_id == BotUser.id)
-                .filter(BotUser.id == user_id)
-                .order_by(sa.func.random())
-                .limit(chunk_size).all()
-            )
-        return random_words
+    # def _get_random_cards(self, user_id: int, chunk_size=4):
+    #     with self._session as session:
+    #         random_words = (
+    #             session.query(Word)
+    #             .join(BotUser, Word.user_id == BotUser.id)
+    #             .filter(BotUser.id == user_id)
+    #             .order_by(sa.func.random())
+    #             .limit(chunk_size).all()
+    #         )
+    #     return random_words
