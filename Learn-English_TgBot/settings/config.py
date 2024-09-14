@@ -28,7 +28,7 @@ class Settings(AdvancedBaseSettings):
     VERSION = '1.0.0'
     AUTHOR = 'InnCent'
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_PATH = 'source/default_data/default_words.json'
+    DATA_PATH = 'source/data/default_words.json'
 
     @property
     def DSN(self):

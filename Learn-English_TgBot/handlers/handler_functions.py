@@ -2,14 +2,14 @@ from handlers.handler_core import Handler
 from settings.config import KEYBOARD
 from settings.messages import MESSAGES
 from settings.config import settings
-from play_session.session_core import UsersPlaySession
+from play_session.session_main import PlaySession
 import requests
 
 
 class HandlerFunctions(Handler):
     def __init__(self, bot):
         super().__init__(bot)
-        self.play_session = UsersPlaySession()
+        self.play_session = PlaySession()
 
     def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -19,7 +19,7 @@ class HandlerFunctions(Handler):
 
     def get_cards(self, message):
         user_id = int(message.from_user.id)
-        user_name = message.from_user.first_name
+        # user_name = message.from_user.first_name
         if not self.DB.identified_user(user_id):
             self.DB.init_default_cards(user_id)
         main_keyboard = self.keyboards.get_next_word_keyboard(user_id)
