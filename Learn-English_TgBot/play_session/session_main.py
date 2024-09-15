@@ -1,6 +1,7 @@
 from random import choices
 from database.db_main import DBManager
 from markup.markups import Markup
+from models.bot_user import BotUser
 from play_session.session_core import PlaySessionCore
 from settings.config import settings
 from source.data_models import TargetWord, OtherWord
@@ -12,13 +13,27 @@ class PlaySession(PlaySessionCore):
         self.DB = DBManager()
         self.markup = Markup()
 
-    def _get_other_words(self, amount: int = settings.WORDS_IN_CARDS - 1) -> list[OtherWord]:
+    def init_session(self, bot_user: BotUser):
+        self.session_id = 0
+        self.user = bot_user
+        self.target_words = self.DB.get_target_words()
+
+
+        self.session_id: Optional[int] = 0
+        self.user: Optional[BotUser] = None
+        self.target_words: list[TargetWord] = []
+        self.target_word_index: int = 0
+        self.is_target_list_ended: bool = True
+        self.viewed_words: Optional[list[TargetWord]] = []
+        self.other_words: Optional[list[OtherWord]] = []
+
+    def get_other_words(self, amount: int = settings.WORDS_IN_CARDS - 1) -> list[OtherWord]:
         if self.other_words and len(self.other_words) >= amount:
             return choices(population=self.other_words, k=amount)
         else:
             return []
 
-    def _get_next_target_word(self) -> TargetWord | None:
+    def get_next_target_word(self) -> TargetWord | None:
         if self.target_words and self.target_word_index < len(self.target_words):
             target_word = self.target_words[self.target_word_index]
             self.target_word_index += 1
