@@ -27,6 +27,9 @@ class PlaySession(PlaySessionCore):
             self.is_target_list_ended = True
             return None
 
+    def start_session(self, user_id: int):
+        self.user = self.DB.get_user(user_id)
+
     def form_words_card(self):
         target_word = self._get_next_target_word()
         other_words = self._get_other_words()

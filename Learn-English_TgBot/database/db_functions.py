@@ -17,12 +17,12 @@ class DBFunctions:
         self._session = Session()
         self.words_api_url = settings.WORDS_URL
 
-    def _identify_user(self, user_id: int) -> int | None:
+    def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
             familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
             return familiar.id if familiar else None
 
-    def _add_new_user(self, user_id: int, user_name: str = '') -> bool:
+    def add_new_user(self, user_id: int, user_name: str = '') -> bool:
         new_user = BotUser(id=user_id, name=user_name)
         try:
             with self._session as session:
@@ -44,7 +44,7 @@ class DBFunctions:
             return False
         return True
 
-    def _find_category(self, user_id: int, name: str) -> int | None:
+    def find_category(self, user_id: int, name: str) -> int | None:
         name = name.capitalize().strip()
         with self._session as session:
             query = (
@@ -55,7 +55,7 @@ class DBFunctions:
             category = session.execute(query).scalars().first()
         return category.id if category else None
 
-    def _find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
+    def find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
         eng_title = eng_title.capitalize().strip()
         rus_title = rus_title.capitalize().strip()
         with self._session as session:
@@ -67,17 +67,7 @@ class DBFunctions:
             word = session.execute(query).scalars().first()
         return word
 
-    def _check_new_word(self, user_id, word: str) -> bool:
-        word = word.capitalize().strip()
-        with self._session as session:
-            query = (
-                sa.select(Word).filter(Word.user_id == user_id)
-                .filter(or_(Word.rus_title.ilike(f'{word}'), Word.eng_title.ilike(f'{word}')))
-            )
-            selected_word = session.execute(query).scalars().first()
-        return selected_word is not None
-
-    def _get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
+    def get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
         category = category.capitalize().strip()
         query = (
@@ -93,10 +83,9 @@ class DBFunctions:
             target_words = session.execute(query).scalars().all()
         return target_words
 
-    def _get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
+    def get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
         category = category.capitalize().strip()
-        self.id = Word.user_id == user_id
         query = (
             sa.select(Word).filter(Word.user_id == user_id)
             .options(selectinload(Word.category))
@@ -107,6 +96,16 @@ class DBFunctions:
         with self._session as session:
             other_words = session.execute(query).scalars().all()
         return other_words
+
+    def check_new_word(self, user_id, word: str) -> bool:
+        word = word.capitalize().strip()
+        with self._session as session:
+            query = (
+                sa.select(Word).filter(Word.user_id == user_id)
+                .filter(or_(Word.rus_title.ilike(f'{word}'), Word.eng_title.ilike(f'{word}')))
+            )
+            selected_word = session.execute(query).scalars().first()
+        return selected_word is not None
 
     # def _get_random_cards(self, user_id: int, chunk_size=4):
     #     with self._session as session:

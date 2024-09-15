@@ -1,8 +1,7 @@
-import enum
 import os
 from emoji import emojize
 from enum import Enum
-from pydantic.v1 import BaseSettings, Field, SecretStr
+from pydantic.v1 import BaseSettings, Field
 
 
 class AdvancedBaseSettings(BaseSettings):
@@ -17,18 +16,18 @@ class Settings(AdvancedBaseSettings):
     DB_NAME: str = Field(env='DB_NAME', default='postgres')
     DIALECT: str = Field(env='DIALECT', default='postgresql')
     USERNAME: str = Field(env='USERNAME', default='postgres')
-    PASSWORD: SecretStr = Field(env='PASSWORD', default='postgres')
+    PASSWORD: str = Field(env='PASSWORD', default='postgres')
     PORT: int = Field(env='PORT', default=5432)
     URL: str = Field(env='URL', default='localhost')
-    WORDS_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/"
-    WORDS_LIMIT = 10
-    TARGET_WORDS_CHUNK_SIZE = 10
-    OTHER_WORDS_CHUNK_SIZE = 50
-    WORDS_IN_CARDS = 4
-    VERSION = '1.0.0'
-    AUTHOR = 'InnCent'
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_PATH = 'source/data/default_words.json'
+    WORDS_URL: str = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+    WORDS_LIMIT: int = 10
+    TARGET_WORDS_CHUNK_SIZE: int = 10
+    OTHER_WORDS_CHUNK_SIZE: int = 50
+    WORDS_IN_CARDS: int = 4
+    VERSION: str = '1.0.0'
+    AUTHOR: str = 'InnCent'
+    BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
+    DATA_PATH: str = 'source/data/default_words.json'
 
     @property
     def DSN(self):
@@ -66,6 +65,15 @@ COMMANDS = {
     'HELP': 'help',
     'CARDS': 'cards',
     'PLAY': 'play',
+}
+
+MENU_COMMANDS = {
+    'start': 'Начать',
+    'help': 'Помощь',
+    'cards': 'Карточки',
+    'add_word': 'Добавить слово',
+    'delete_word': 'Удалить слово',
+    'settings': 'Настройки',
 }
 
 

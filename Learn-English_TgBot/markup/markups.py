@@ -1,4 +1,4 @@
-from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from markup.keyboards import Keyboards
 
 
@@ -34,3 +34,4 @@ class Markup:
         navigation_buttons = [self.keyboards.set_command_button(button) for button in buttons_names]
         markup = self.get_markup(navigation_buttons, items_in_line=items_in_line)
         return markup
+

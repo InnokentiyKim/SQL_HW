@@ -15,7 +15,6 @@ class Category(Base):
 
     __table_args__ = (
         UniqueConstraint('name'),
-        Index('name'),
     )
 
     def __str__(self):

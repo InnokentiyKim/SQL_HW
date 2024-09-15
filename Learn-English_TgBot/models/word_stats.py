@@ -15,5 +15,8 @@ class WordStats(Base):
     word: Mapped['Word'] = relationship(back_populates='word_stats')
 
     __tableargs__ = (
-        CheckConstraint()
+        CheckConstraint('is_studied >= 0'),
+        CheckConstraint('number_of_attempts >= 0'),
+        CheckConstraint('successful_attempts >= 0'),
+        CheckConstraint('success_streak >= 0'),
     )

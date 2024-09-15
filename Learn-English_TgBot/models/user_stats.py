@@ -14,5 +14,7 @@ class UserStats(Base):
     bot_user: Mapped['BotUser'] = relationship(back_populates='user_stats')
 
     __tableargs__ = (
-        CheckConstraint()
+        CheckConstraint('number_of_attempts >= 0'),
+        CheckConstraint('successful_attempts >= 0'),
+        CheckConstraint('success_streak >= 0'),
     )
