@@ -8,39 +8,34 @@ class Markup:
         self.keyboards = Keyboards()
         self.active_keyboard = None
 
-    @staticmethod
-    def get_markup(buttons: list, items_in_line: int = 1, one_time: bool = False):
-        markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=one_time)
-        if 0 < items_in_line <= len(buttons):
-            for i in range(0, len(buttons), items_in_line):
-                markup.row(*buttons[i:i+items_in_line])
-                markup.row()
-        else:
-            markup.row(*buttons)
-        return markup
-
-    def get_words_markup(self, buttons_names: list[str], items_in_line: int = 2, one_time: bool = False):
+    def _get_words_keyboard(self, buttons_names: list[str]):
         words_buttons = [self.keyboards.set_word_button(button) for button in buttons_names]
-        markup = self.get_markup(words_buttons, items_in_line=items_in_line, one_time=one_time)
-        return markup
+        return words_buttons
 
-    def get_menu_markup(self, buttons_names: list[str], items_in_line: int = 2, one_time=False):
-        command_buttons = [self.keyboards.set_command_button(button) for button in buttons_names]
+    def get_menu_keyboard(self, buttons_names: list[str], one_time: bool = False):
         markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=one_time)
-        self.get_markup(command_buttons, items_in_line=items_in_line, one_time=one_time)
+        command_buttons = [self.keyboards.set_command_button(button) for button in buttons_names]
+        markup.row(*command_buttons)
         return markup
 
-    def get_navigation_markup(self, buttons_names: list[str], items_in_line: int = 1):
+    def _get_navigation_keyboard(self, buttons_names: list[str]):
         navigation_buttons = [self.keyboards.set_command_button(button) for button in buttons_names]
-        markup = self.get_markup(navigation_buttons, items_in_line=items_in_line)
-        return markup
+        return navigation_buttons
 
-    # def get_next_word_keyboard(self, user_id: int):
-    #     self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    #     self.markup = self._cards_desk(user_id)
-    #     menu_button = self.keyboards.set_command_button('MENU')
-    #     next_step_button = self.keyboards.set_command_button('NEXT_STEP')
-    #     self.markup.row(menu_button, next_step_button)
-    #     self.active_keyboard = self.markup
-    #     return self.markup
+    def get_main_keyboard(self, words: list[str], navigation: list[str], words_in_line: int = 2, commands_in_line: int = 3):
+        markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
+        words_keyboard = self._get_words_keyboard(words)
+        navigation_keyboard = self._get_navigation_keyboard(navigation)
+        if 0 < words_in_line <= len(words_keyboard):
+            for i in range(0, len(words_keyboard), words_in_line):
+                markup.row(*words_keyboard[i:i+words_in_line])
+        else:
+            markup.row(*words_keyboard)
+        markup.row()
+        if 0 < commands_in_line <= len(navigation_keyboard):
+            for i in range(0, len(navigation_keyboard), commands_in_line):
+                markup.row(*navigation_keyboard[i:i+commands_in_line])
+        else:
+            markup.row(*navigation_keyboard)
+        return markup
 

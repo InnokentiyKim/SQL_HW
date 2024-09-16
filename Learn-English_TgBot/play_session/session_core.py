@@ -17,7 +17,7 @@ class PlaySessionCore:
 
     def refresh_session(self):
         self.target_word_index = 0
-        self.is_target_list_ended = True
+        self.is_target_list_ended = False
         self.session_id += 1
 
 

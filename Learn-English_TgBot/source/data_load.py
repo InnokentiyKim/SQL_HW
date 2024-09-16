@@ -3,6 +3,7 @@ from bot_logging.bot_logging import error_logging, LOGGER_PATH
 from models.bot_user import BotUser
 from models.category import Category
 from models.word import Word
+from models.word_stats import WordStats
 from source.data_models import WordDTO
 
 

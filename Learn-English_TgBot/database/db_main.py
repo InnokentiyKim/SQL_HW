@@ -28,27 +28,27 @@ class DBManager(metaclass=Singleton):
             )
             return familiar_user if familiar_user else None
 
-    def add_new_user(self, user_id: int, user_name: str = '') -> bool:
+    def add_new_user(self, user_id: int, user_name: str = '') -> BotUser | None:
         new_user = BotUser(id=user_id, name=user_name)
         try:
             with self._session as session:
-                session.add(new_user).flush()
-                user_settings = UserSettings(bot_user=new_user)
-                user_stats = UserStats(bot_user=new_user)
+                new_user.user_stats = UserStats(bot_user=new_user)
+                new_user.user_settings = UserSettings(bot_user=new_user)
                 base_category = Category()
-                session.add_all([user_settings, user_stats, base_category]).flush()
-                words = load_words_from_json(settings.DATA_PATH, new_user, [base_category])
-                session.add(words).flush()
+                session.add_all([new_user, base_category]).flush()
+                words = load_words_from_json(settings.DATA_PATH,  new_user, [base_category])
+                session.add_all(words).flush()
                 words_stats = [WordStats(word=word) for word in words]
                 session.add_all(words_stats)
                 session.commit()
+                return new_user
         except sa.exc.IntegrityError:
-            return False
+            pass
         except sa.exc.UniqueViolation:
-            return False
+            pass
         except Exception as error:
-            return False
-        return True
+            pass
+        return None
 
     def get_category_by_name(self, user_id: int, name: str) -> Category | None:
         name = name.capitalize().strip()

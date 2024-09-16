@@ -2,6 +2,7 @@ from random import shuffle, choices
 from database.db_main import DBManager
 from markup.markups import Markup
 from models.bot_user import BotUser
+from models.user_stats import UserStats
 from models.word import Word
 from play_session.session_core import PlaySessionCore
 from settings.config import settings, CATEGORIES
@@ -11,17 +12,14 @@ class PlaySession(PlaySessionCore):
     def __init__(self):
         super().__init__()
         self.DB = DBManager()
-        self.markup = Markup()
 
-    def init_session(self, bot_user: BotUser, category: str = CATEGORIES['COMMON']['name']) -> None:
-        self.session_id = 0
+    def init_session(self, bot_user: BotUser, words_category: str = CATEGORIES['COMMON']['name']) -> None:
         self.user = bot_user
-        self.target_words = self.DB.get_target_words(self.user.id, category=category)
-        self.other_words = self.DB.get_other_words(self.user.id, category=category)
+        self.target_words = self.DB.get_target_words(self.user.id, category=words_category)
+        self.other_words = self.DB.get_other_words(self.user.id, category=words_category)
         if self.target_words:
             shuffle(self.target_words)
-            self.target_word_index = 0
-            self.is_target_list_ended = False
+            self.refresh_session()
 
     def _get_next_target_word(self) -> Word | None:
         if self.target_words and not self.is_target_list_ended:
@@ -38,12 +36,13 @@ class PlaySession(PlaySessionCore):
         else:
             return []
 
-    def get_next_words_card(self, other_words_amount: int = settings.WORDS_IN_CARDS - 1) -> dict[str, list[Word] | Word]:
+    def get_words_for_card(self, other_words_amount: int = settings.WORDS_IN_CARDS - 1) -> dict[str, list[Word] | Word] | None:
         target_word = self._get_next_target_word()
         other_words = self._get_next_other_words(other_words_amount)
-        return {'target': target_word, 'other': other_words}
-
-    def
+        all_words = [target_word] + other_words
+        if not target_word or not other_words:
+            return None
+        return {'target': target_word, 'other': other_words, 'all': all_words}
 
 
 
