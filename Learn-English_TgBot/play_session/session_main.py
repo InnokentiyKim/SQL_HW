@@ -1,9 +1,12 @@
-from random import choices
+from random import shuffle
+
+from requests.packages import target
+
 from database.db_main import DBManager
 from markup.markups import Markup
 from models.bot_user import BotUser
 from play_session.session_core import PlaySessionCore
-from settings.config import settings
+from settings.config import settings, CATEGORIES
 from source.data_models import TargetWord, OtherWord
 
 
@@ -13,10 +16,25 @@ class PlaySession(PlaySessionCore):
         self.DB = DBManager()
         self.markup = Markup()
 
-    def init_session(self, bot_user: BotUser):
+    def init_session(self, bot_user: BotUser, category: str = CATEGORIES['COMMON']['name']) -> None:
         self.session_id = 0
         self.user = bot_user
-        self.target_words = self.DB.get_target_words()
+        self.target_words = self.DB.get_target_words(self.user.id, category=category)
+        self.other_words = self.DB.get_other_words(self.user.id, category=category)
+        if self.target_words:
+            shuffle(self.target_words)
+            self.target_word_index = 0
+            self.is_target_list_ended = False
+
+    def _get_next_target_word(self) -> TargetWord | None:
+        return self.target_words[self.target_word_index] if not self.is_target_list_ended else None
+
+    def get_next_play_card(self, ):
+        target_word =
+
+
+
+
 
 
         self.session_id: Optional[int] = 0

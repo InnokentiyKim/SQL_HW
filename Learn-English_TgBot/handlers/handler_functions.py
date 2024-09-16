@@ -28,8 +28,11 @@ class HandlerFunctions(Handler):
 
     @staticmethod
     def get_words_description(word: str) -> dict:
-        response = requests.get(settings.WORDS_URL, params={'words': word}).json()
-        description = response.get('description')
+        try:
+            response = requests.get(settings.WORDS_URL, params={'words': word}).json()
+            description = response.get('description')
+        except Exception as error:
+            description = None
         return description
 
     def get_bots_menu(self, message):

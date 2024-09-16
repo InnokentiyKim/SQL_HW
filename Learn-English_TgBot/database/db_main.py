@@ -108,6 +108,10 @@ class DBManager(metaclass=Singleton):
             selected_word = session.execute(query).scalars().first()
         return selected_word is not None
 
+    def add_new_word(self, user: BotUser, word: Word, category: Category, word_stats: WordStats) -> bool:
+        new_word = Word(user=user, category=[category], word_stats=word_stats)
+
+
     # def _get_random_cards(self, user_id: int, chunk_size=4):
     #     with self._session as session:
     #         random_words = (
