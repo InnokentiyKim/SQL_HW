@@ -35,12 +35,12 @@ class Markup:
         markup = self.get_markup(navigation_buttons, items_in_line=items_in_line)
         return markup
 
-    def get_next_word_keyboard(self, user_id: int):
-        self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        self.markup = self._cards_desk(user_id)
-        menu_button = self.keyboards.set_command_button('MENU')
-        next_step_button = self.keyboards.set_command_button('NEXT_STEP')
-        self.markup.row(menu_button, next_step_button)
-        self.active_keyboard = self.markup
-        return self.markup
+    # def get_next_word_keyboard(self, user_id: int):
+    #     self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    #     self.markup = self._cards_desk(user_id)
+    #     menu_button = self.keyboards.set_command_button('MENU')
+    #     next_step_button = self.keyboards.set_command_button('NEXT_STEP')
+    #     self.markup.row(menu_button, next_step_button)
+    #     self.active_keyboard = self.markup
+    #     return self.markup
 

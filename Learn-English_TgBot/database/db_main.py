@@ -16,12 +16,17 @@ class DBManager(metaclass=Singleton):
     def __init__(self):
         self._session = Session()
         Base.metadata.create_all(engine)
-        self.words_api_url = settings.WORDS_URL
 
     def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
-            familiar = session.query(BotUser).filter(BotUser.id == user_id).first()
-            return familiar.id if familiar else None
+            familiar_user = (
+                session.query(BotUser)
+                .filter(BotUser.id == user_id)
+                .options(selectinload(BotUser.user_stats))
+                .options(selectinload(BotUser.user_settings))
+                .first()
+            )
+            return familiar_user if familiar_user else None
 
     def add_new_user(self, user_id: int, user_name: str = '') -> bool:
         new_user = BotUser(id=user_id, name=user_name)
@@ -45,7 +50,7 @@ class DBManager(metaclass=Singleton):
             return False
         return True
 
-    def find_category(self, user_id: int, name: str) -> int | None:
+    def get_category_by_name(self, user_id: int, name: str) -> Category | None:
         name = name.capitalize().strip()
         with self._session as session:
             query = (
@@ -54,7 +59,7 @@ class DBManager(metaclass=Singleton):
                 .filter(Word.user_id == user_id).first()
             )
             category = session.execute(query).scalars().first()
-        return category.id if category else None
+        return category if category else None
 
     def find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
         eng_title = eng_title.capitalize().strip()
@@ -108,8 +113,33 @@ class DBManager(metaclass=Singleton):
             selected_word = session.execute(query).scalars().first()
         return selected_word is not None
 
-    def add_new_word(self, user: BotUser, word: Word, category: Category, word_stats: WordStats) -> bool:
-        new_word = Word(user=user, category=[category], word_stats=word_stats)
+    def add_new_word(self, user: BotUser, word: Word, category: Category, word_stats: WordStats = None) -> bool:
+        try:
+            if word_stats is None:
+                word_stats = WordStats(word=word)
+            new_word = Word(user=user, category=[category], word_stats=word_stats)
+            with self._session as session:
+                session.add(new_word).commit()
+            return True
+        except sa.exc.IntegrityError:
+            return False
+        except sa.exc.UniqueViolation:
+            return False
+        except Exception as error:
+            return False
+
+    def delete_word(self, user: BotUser, word: Word) -> bool:
+        try:
+            with self._session as session:
+                session.delete(word)
+                session.commit()
+            return True
+        except sa.exc.IntegrityError:
+            return False
+        except Exception as error:
+            return False
+
+
 
 
     # def _get_random_cards(self, user_id: int, chunk_size=4):

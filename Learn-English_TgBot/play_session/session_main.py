@@ -1,13 +1,10 @@
-from random import shuffle
-
-from requests.packages import target
-
+from random import shuffle, choices
 from database.db_main import DBManager
 from markup.markups import Markup
 from models.bot_user import BotUser
+from models.word import Word
 from play_session.session_core import PlaySessionCore
 from settings.config import settings, CATEGORIES
-from source.data_models import TargetWord, OtherWord
 
 
 class PlaySession(PlaySessionCore):
@@ -26,50 +23,31 @@ class PlaySession(PlaySessionCore):
             self.target_word_index = 0
             self.is_target_list_ended = False
 
-    def _get_next_target_word(self) -> TargetWord | None:
-        return self.target_words[self.target_word_index] if not self.is_target_list_ended else None
+    def _get_next_target_word(self) -> Word | None:
+        if self.target_words and not self.is_target_list_ended:
+            self.current_target_word = self.target_words[self.target_word_index]
+            self.target_word_index += 1
+            return self.current_target_word
+        else:
+            self.is_target_list_ended = True
+            return None
 
-    def get_next_play_card(self, ):
-        target_word =
-
-
-
-
-
-
-        self.session_id: Optional[int] = 0
-        self.user: Optional[BotUser] = None
-        self.target_words: list[TargetWord] = []
-        self.target_word_index: int = 0
-        self.is_target_list_ended: bool = True
-        self.viewed_words: Optional[list[TargetWord]] = []
-        self.other_words: Optional[list[OtherWord]] = []
-
-    def get_other_words(self, amount: int = settings.WORDS_IN_CARDS - 1) -> list[OtherWord]:
+    def _get_next_other_words(self, amount: int) -> list[Word]:
         if self.other_words and len(self.other_words) >= amount:
             return choices(population=self.other_words, k=amount)
         else:
             return []
 
-    def get_next_target_word(self) -> TargetWord | None:
-        if self.target_words and self.target_word_index < len(self.target_words):
-            target_word = self.target_words[self.target_word_index]
-            self.target_word_index += 1
-            return target_word
-        else:
-            self.is_target_list_ended = True
-            return None
-
-    def start_session(self, user_id: int):
-        self.user = self.DB.get_user(user_id)
-
-    def form_words_card(self):
+    def get_next_words_card(self, other_words_amount: int = settings.WORDS_IN_CARDS - 1) -> dict[str, list[Word] | Word]:
         target_word = self._get_next_target_word()
-        other_words = self._get_other_words()
-        return {'target_word': target_word, 'other_words': other_words}
+        other_words = self._get_next_other_words(other_words_amount)
+        return {'target': target_word, 'other': other_words}
 
-    def form_words_desk(self, words: list[str], items_in_line: int = 2):
-        pass
+    def
+
+
+
+
 
     # def _cards_desk(self, words: list[str], items_in_line: int = 2):
     #     self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
