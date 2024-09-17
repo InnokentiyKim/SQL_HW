@@ -38,7 +38,7 @@ start = f"""
 Тренировки можешь проходить в удобном для себя темпе.
 Причём у тебя есть возможность использовать тренажёр как конструктор 
 и собирать свою собственную базу для обучения. Для этого воспрользуйся 
-инструментами Добавить слово {KEYBOARD['ADD_WORD']} или Удалить слово {KEYBOARD['DELETE_WORD']}.
+инструментами Добавить слово {KEYBOARD['ADD_WORD']} или Удалить слово {KEYBOARD['DELETE_WORD']} в Меню бота.
 """
 
 next_word = """
@@ -57,12 +57,20 @@ add_category = """
 введите категорию для нового слова:
 """
 
+bot_description = f"""
+Бот для изучения английского языка. Бот поможет вам 
+изучить английский язык по карточкам. 
+Версия бота: {settings.VERSION}
+Автор: {settings.AUTHOR}{KEYBOARD['COPY']}
+"""
+
 MESSAGES = {
+    'BOT_DESCRIPTION': bot_description,
     'HELP': help,
     'START': start,
     'NEXT_WORD': next_word,
     'INFO': info,
     'ADD_WORD_ENG': add_word_eng,
     'ADD_WORD_RUS': add_word_rus,
-    'ADD_CATEGORU': add_category,
+    'ADD_CATEGORY': add_category,
 }

@@ -61,7 +61,7 @@ class DBManager(metaclass=Singleton):
             category = session.execute(query).scalars().first()
         return category if category else None
 
-    def find_words(self, user_id: int, words_title: str) -> Word | None:
+    def find_words(self, user_id: int, words_title: str) -> list[Word] | None:
         words_title = words_title.capitalize().strip()
         with self._session as session:
             query = (
@@ -131,10 +131,12 @@ class DBManager(metaclass=Singleton):
     def delete_word(self, user_id: int, word: str) -> bool:
         try:
             with self._session as session:
-                deleting_word = self.find_words(user_id, word)
-                if not deleting_word:
+                deleting_words = self.find_words(user_id, word)
+                if not deleting_words:
                     return False
-                session.delete(deleting_word).commit()
+                for word in deleting_words:
+                    session.delete(word)
+                session.commit()
             return True
         except Exception as error:
             return False

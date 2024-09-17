@@ -1,6 +1,5 @@
 from random import shuffle, choices
 from database.db_main import DBManager
-from markup.markups import Markup
 from models.bot_user import BotUser
 from models.word import Word
 from play_session.session_core import PlaySessionCore

@@ -1,7 +1,6 @@
 import os
 from emoji import emojize
 from enum import Enum
-
 from pydantic import SecretStr
 from pydantic.v1 import BaseSettings, Field
 
@@ -28,7 +27,9 @@ class Settings(AdvancedBaseSettings):
     WORDS_IN_CARDS: int = 4
     VERSION: str = '1.0.0'
     AUTHOR: str = 'InnCent'
+    BOT_NAME: str = 'LearnEnglishVocabularyBot'
     BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
+    PIC_DIR: str = BASE_DIR + 'images/learn_english_bot.png'
     DATA_PATH: str = 'source/data/default_words.json'
 
     @property
@@ -67,6 +68,9 @@ COMMANDS = {
     'HELP': 'help',
     'CARDS': 'cards',
     'PLAY': 'play',
+    'ADD_WORD': 'add_word',
+    'DELETE_WORD': 'delete_word',
+    'SETTINGS': 'settings'
 }
 
 MENU_COMMANDS = {

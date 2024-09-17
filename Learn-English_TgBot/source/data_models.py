@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, PositiveInt
 
@@ -7,13 +8,29 @@ class WordMain(BaseModel):
     rus_title: str
     eng_title: str
 
-
-class TargetWord(WordMain):
+class WordStatsNested(BaseModel):
+    id: int
     is_studied: int
-    is_answered: int
     number_of_attempts: int
     successful_attempts: int
     success_streak: int
+
+class UserNested(BaseModel):
+    id: int
+    name: Optional[str]
+    created_at: datetime
+    last_seen_at: datetime
+
+class CategoryNested(BaseModel):
+    id: int
+    name: str
+
+class TargetWord(WordMain):
+    user_id: int
+    is_answered: bool = False
+    word_stats: WordStatsNested
+    user: list[UserNested]
+    categories: list[CategoryNested]
 
 
 class OtherWord(WordMain):
