@@ -1,6 +1,7 @@
 from handlers.handler_core import Handler
 from markup.markups import Markup
 from models.bot_user import BotUser
+from models.word import Word
 from settings.config import KEYBOARD, TranslationMode
 from settings.messages import MESSAGES
 from settings.config import settings
@@ -12,6 +13,7 @@ class HandlerFunctions(Handler):
     def __init__(self, bot):
         super().__init__(bot)
         self.play_session = PlaySession()
+        self.markup = Markup()
 
     def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -30,15 +32,18 @@ class HandlerFunctions(Handler):
             if play_mode == TranslationMode.RUS_TO_ENG:
                 button_names = [word.eng_title for word in card.get('all')]
                 main_keyboard = self.markup.get_main_keyboard(button_names, navigation_names)
+                self.markup.active_keyboard = main_keyboard
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
                                                        f"{card.get('target').rus_title}", reply_markup=main_keyboard)
             elif play_mode == TranslationMode.ENG_TO_RUS:
                 button_names = [word.rus_title for word in card.get('all')]
                 main_keyboard = self.markup.get_main_keyboard(button_names, navigation_names)
+                self.markup.active_keyboard = main_keyboard
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
                                                        f"{card.get('target').eng_title}", reply_markup=main_keyboard)
         else:
             pass
+
 
     @staticmethod
     def get_words_description(word: str) -> dict:
@@ -56,19 +61,15 @@ class HandlerFunctions(Handler):
         self.bot.send_message(message.chat.id, f"Вы вошли в МЕНЮ", reply_markup=menu_keyboard)
         return menu_keyboard
 
-    def add_new_word(self, message, rus_word, eng_word, category):
-        user_id = int(message.from_user.id)
-        word_rus_title = rus_word
-        word_eng_title = eng_word
-        word_category = category
-        word_added = self.DB.add_word(user_id, word_rus_title, word_eng_title, word_category)
-        menu_keyboard = self.markup.get_menu_keyboard()
+    def add_new_word(self, message, user: BotUser, rus_title: str, eng_title: str, category_name: str):
+        rus_title = rus_title.capitalize().strip()
+        eng_title = eng_title.capitalize().strip()
+        word_added = self.DB.add_new_word(user, rus_title, eng_title, category_name)
+        words_title = f"{rus_title} - {eng_title}"
         if word_added:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} добавлено",
-                                  reply_markup=menu_keyboard, parse_mode='html')
+            self.bot.send_message(message.chat.id, f"Слово {words_title} добавлено", parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"Слово {word_rus_title} - {word_eng_title} уже существует",
-                                  reply_markup=menu_keyboard, parse_mode='html')
+            self.bot.send_message(message.chat.id, f"Слово {words_title} уже существует", parse_mode='html')
 
     def delete_word(self, message, word):
         user_id = int(message.from_user.id)

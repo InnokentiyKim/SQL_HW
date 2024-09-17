@@ -61,16 +61,14 @@ class DBManager(metaclass=Singleton):
             category = session.execute(query).scalars().first()
         return category if category else None
 
-    def find_word(self, user_id: int, rus_title: str, eng_title: str) -> Word | None:
-        eng_title = eng_title.capitalize().strip()
-        rus_title = rus_title.capitalize().strip()
+    def find_words(self, user_id: int, words_title: str) -> Word | None:
+        words_title = words_title.capitalize().strip()
         with self._session as session:
             query = (
                 sa.select(Word).filter(Word.user_id == user_id)
-                .filter(Word.rus_title.ilike(f"{rus_title}"))
-                .filter(Word.eng_title.ilike(f"{eng_title}"))
+                .filter(or_(Word.rus_title.ilike(f"{words_title}"), Word.eng_title.ilike(f"{words_title}")))
             )
-            word = session.execute(query).scalars().first()
+            word = session.execute(query).scalars().all()
         return word
 
     def get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
@@ -113,11 +111,13 @@ class DBManager(metaclass=Singleton):
             selected_word = session.execute(query).scalars().first()
         return selected_word is not None
 
-    def add_new_word(self, user: BotUser, word: Word, category: Category, word_stats: WordStats = None) -> bool:
+    def add_new_word(self, user: BotUser, rus_title, eng_title, category_name = CATEGORIES['COMMON']['name']) -> bool:
         try:
-            if word_stats is None:
-                word_stats = WordStats(word=word)
-            new_word = Word(user=user, category=[category], word_stats=word_stats)
+            category = self.get_category_by_name(user.id, category_name)
+            if not category:
+                return False
+            word_stats = WordStats()
+            new_word = Word(rus_title=rus_title, eng_title=eng_title, user=user, category=[category], word_stats=word_stats)
             with self._session as session:
                 session.add(new_word).commit()
             return True
@@ -128,27 +128,13 @@ class DBManager(metaclass=Singleton):
         except Exception as error:
             return False
 
-    def delete_word(self, user: BotUser, word: Word) -> bool:
+    def delete_word(self, user_id: int, word: str) -> bool:
         try:
             with self._session as session:
-                session.delete(word)
-                session.commit()
+                deleting_word = self.find_words(user_id, word)
+                if not deleting_word:
+                    return False
+                session.delete(deleting_word).commit()
             return True
-        except sa.exc.IntegrityError:
-            return False
         except Exception as error:
             return False
-
-
-
-
-    # def _get_random_cards(self, user_id: int, chunk_size=4):
-    #     with self._session as session:
-    #         random_words = (
-    #             session.query(Word)
-    #             .join(BotUser, Word.user_id == BotUser.id)
-    #             .filter(BotUser.id == user_id)
-    #             .order_by(sa.func.random())
-    #             .limit(chunk_size).all()
-    #         )
-    #     return random_words
