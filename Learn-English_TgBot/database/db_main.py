@@ -19,23 +19,24 @@ class DBManager(metaclass=Singleton):
 
     def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
-            familiar_user = (
-                session.query(BotUser)
+            query = (
+                sa.select(BotUser)
                 .filter(BotUser.id == user_id)
                 .options(selectinload(BotUser.user_stats))
                 .options(selectinload(BotUser.user_settings))
-                .first()
             )
+            familiar_user = session.execute(query).scalars().first()
             return familiar_user if familiar_user else None
 
     def add_new_user(self, user_id: int, user_name: str = '') -> BotUser | None:
         new_user = BotUser(id=user_id, name=user_name)
         try:
             with self._session as session:
-                new_user.user_stats = UserStats(bot_user=new_user)
-                new_user.user_settings = UserSettings(bot_user=new_user)
+                session.add(new_user).flush()
+                user_stats = UserStats(bot_user=new_user)
+                user_settings = UserSettings(bot_user=new_user)
                 base_category = Category()
-                session.add_all([new_user, base_category]).flush()
+                session.add_all([user_stats, user_settings, base_category]).flush()
                 words = load_words_from_json(settings.DATA_PATH,  new_user, [base_category])
                 session.add_all(words).flush()
                 words_stats = [WordStats(word=word) for word in words]

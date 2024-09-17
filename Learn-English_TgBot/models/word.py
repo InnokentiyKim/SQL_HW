@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from database.db_core import Base
 from models.bot_user import BotUser
 from models.category import Category
+from models.category_word import CategoryWord
 from models.word_stats import WordStats
 
 
@@ -13,9 +14,10 @@ class Word(Base):
     rus_title: Mapped[str] = mapped_column(index=True, nullable=False)
     eng_title: Mapped[str] = mapped_column(index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'))
-    user: Mapped['BotUser'] = relationship(back_populates='word')
+    bot_user: Mapped['BotUser'] = relationship(back_populates='word')
     word_stats: Mapped['WordStats'] = relationship(back_populates='word', uselist=False)
     category: Mapped[list['Category']] = relationship(secondary='category_word', back_populates='word')
+    words_category: Mapped[list['CategoryWord']] = relationship(back_populates='word_details')
 
     __tableargs__ = (
         UniqueConstraint('rus_title', 'eng_title'),

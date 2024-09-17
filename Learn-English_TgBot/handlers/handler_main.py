@@ -4,8 +4,6 @@ from models.bot_user import BotUser
 from settings.config import COMMANDS, KEYBOARD
 from transitions import Machine
 
-from source.data_models import TargetWord
-
 
 class WordCardsBot:
     states = ['start', 'playing', 'adding_data', 'deleting_data']

@@ -21,9 +21,11 @@ class HandlerFunctions(Handler):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
 
     def start_actions(self, message):
-        user = self.DB.identify_user(message.from_user.id)
+        user_id = int(message.from_user.id)
+        user_name = message.from_user.first_name
+        user = self.DB.identify_user(user_id)
         if not user:
-            user = self.DB.add_new_user(message.from_user.id, message.from_user.first_name)
+            user = self.DB.add_new_user(user_id, user_name)
         else:
             self.bot.send_message(message.chat.id, f"С возвращением, {message.from_user.first_name}! Рада видеть вас снова!")
         self.play_session.init_session(user)

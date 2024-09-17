@@ -1,7 +1,6 @@
 from sqlalchemy import ForeignKey, CheckConstraint
 from database.db_core import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
 from settings.config import TranslationMode
 
 
