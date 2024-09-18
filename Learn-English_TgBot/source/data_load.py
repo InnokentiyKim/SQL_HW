@@ -1,3 +1,5 @@
+import json
+
 from pydantic import TypeAdapter
 from bot_logging.bot_logging import error_logging, LOGGER_PATH
 from models.bot_user import BotUser
@@ -8,8 +10,11 @@ from source.data_models import WordDTO
 
 
 @error_logging(path=LOGGER_PATH)
-def load_words_from_json(file_path: str, user: BotUser, categories: list[Category]) -> list[Word]:
+def load_words_from_json(file_path: str, user: BotUser, categories: list[Category] = None) -> list[Word]:
     with open (file_path, 'r', encoding='utf-8') as file:
-        valid_data = TypeAdapter(list[WordDTO]).validate_json(file.read())
-        words_list = [Word(user = user, category=categories , **word) for word in valid_data]
+        words_data = json.load(file)
+        if categories:
+            words_list = [Word(bot_user=user, **word, category=categories) for word in words_data]
+        else:
+            words_list = [Word(bot_user=user, **word) for word in words_data]
     return words_list

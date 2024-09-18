@@ -7,7 +7,7 @@ from typing import Optional
 class WordStats(Base):
     __tablename__ = 'word_stats'
 
-    id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'), primary_key=True)
+    id: Mapped[int] = mapped_column(ForeignKey('word.id', ondelete='CASCADE'), primary_key=True)
     is_studied: Mapped[int] = mapped_column(default=0)
     number_of_attempts: Mapped[int] = mapped_column(default=0)
     successful_attempts: Mapped[int] = mapped_column(default=0)

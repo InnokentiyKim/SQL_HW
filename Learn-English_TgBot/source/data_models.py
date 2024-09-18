@@ -69,7 +69,6 @@ class WordDTO(BaseModel):
     id: Optional[PositiveInt]
     eng_title: str
     rus_title: str
-    user_id: PositiveInt
 
 
 class WordStatsDTO(BaseModel):

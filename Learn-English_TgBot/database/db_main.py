@@ -1,6 +1,7 @@
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session, Singleton, Base, engine
+from models.category_word import CategoryWord
 from models.user_settings import UserSettings
 from models.user_stats import UserStats
 from models.category import Category
@@ -32,20 +33,25 @@ class DBManager(metaclass=Singleton):
         new_user = BotUser(id=user_id, name=user_name)
         try:
             with self._session as session:
-                session.add(new_user).flush()
+                session.add(new_user)
+                session.flush()
                 user_stats = UserStats(bot_user=new_user)
                 user_settings = UserSettings(bot_user=new_user)
+                session.add_all([user_stats, user_settings])
+                session.flush()
+                words = load_words_from_json(settings.DATA_PATH, user=new_user)
                 base_category = Category()
-                session.add_all([user_stats, user_settings, base_category]).flush()
-                words = load_words_from_json(settings.DATA_PATH,  new_user, [base_category])
-                session.add_all(words).flush()
+                session.add(base_category)
+                session.add_all(words)
+                session.flush()
+                category_words = [CategoryWord(word_details=word, category_details=base_category) for word in words]
+                session.add_all(category_words)
                 words_stats = [WordStats(word=word) for word in words]
                 session.add_all(words_stats)
                 session.commit()
+                print(new_user)
                 return new_user
         except sa.exc.IntegrityError:
-            pass
-        except sa.exc.UniqueViolation:
             pass
         except Exception as error:
             pass
