@@ -15,7 +15,6 @@ class HandlerFunctions(Handler):
     def __init__(self, bot):
         super().__init__(bot)
         self.play_session = PlaySession()
-        self.markup = Markup()
 
     def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -26,14 +25,16 @@ class HandlerFunctions(Handler):
         user = self.DB.identify_user(user_id)
         if not user:
             user = self.DB.add_new_user(user_id, user_name)
+            self.bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}! Будем знакомы!")
+            self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
         else:
             self.bot.send_message(message.chat.id, f"С возвращением, {message.from_user.first_name}! Рада видеть вас снова!")
         self.play_session.init_session(user)
-        self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
+        self.bot.send_message(message.chat.id, f"Чтобы начать введите команду 'play' или 'cards'")
 
-    def get_next_card(self, message, play_mode: TranslationMode):
+    def get_next_card(self, message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
         card = self.play_session.get_words_for_card()
-        navigation_names = [KEYBOARD['INFO'], KEYBOARD['NEXT_STEP']]
+        navigation_names = [KEYBOARD['INFO'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
         if card:
             if play_mode == TranslationMode.RUS_TO_ENG:
                 button_names = [word.eng_title for word in card.get('all')]
@@ -42,8 +43,8 @@ class HandlerFunctions(Handler):
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
                                                        f"{card.get('target').rus_title}", reply_markup=main_keyboard)
             elif play_mode == TranslationMode.ENG_TO_RUS:
-                button_names = [word.rus_title for word in card.get('all')]
-                main_keyboard = self.markup.get_main_keyboard(button_names, navigation_names)
+                word_names = [word.rus_title for word in card.get('all')]
+                main_keyboard = self.markup.get_main_keyboard(word_names, navigation_names)
                 self.markup.active_keyboard = main_keyboard
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
                                                        f"{card.get('target').eng_title}", reply_markup=main_keyboard)

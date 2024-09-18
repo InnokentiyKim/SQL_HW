@@ -21,10 +21,10 @@ info = f"""
 -<b>({KEYBOARD['BACK']}) - </b><i>назад</i>
 
 <i>Специальные кнопки:</i>
--<b>({KEYBOARD['MENU']}) - </b><i>меню</i>
--<b>({KEYBOARD['SETTINGS']}) - </b><i>настройки</i>
--<b>({KEYBOARD['ADD_WORD']}) - </b><i>добавить слово</i>
--<b>({KEYBOARD['DELETE_WORD']}) - </b><i>удалить слово</i>
+-<b>({KEYBOARD['MENU']}) - </b>
+-<b>({KEYBOARD['SETTINGS']}) - </b>
+-<b>({KEYBOARD['ADD_WORD']}) - </b>
+-<b>({KEYBOARD['DELETE_WORD']}) - </b>
 
 <i>Общая информация:</i>
 -<b>версия программы - </b><i>({settings.VERSION})</i>

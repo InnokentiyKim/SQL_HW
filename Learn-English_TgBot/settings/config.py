@@ -74,12 +74,10 @@ COMMANDS = {
 }
 
 MENU_COMMANDS = {
-    'start': 'Начать',
-    'help': 'Помощь',
-    'cards': 'Карточки',
-    'add_word': 'Добавить слово',
-    'delete_word': 'Удалить слово',
-    'settings': 'Настройки',
+    "start": "Начать",
+    "help": "Помощь",
+    "add_word": "Добавить слово",
+    "delete_word": "Удалить слово",
 }
 
 

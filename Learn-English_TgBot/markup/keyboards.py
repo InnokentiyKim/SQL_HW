@@ -6,7 +6,7 @@ class Keyboards:
 
     @staticmethod
     def set_command_button(name: str):
-        return KeyboardButton(config.KEYBOARD[name])
+        return KeyboardButton(name)
 
     @staticmethod
     def set_word_button(name: str):

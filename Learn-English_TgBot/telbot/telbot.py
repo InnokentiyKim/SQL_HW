@@ -16,21 +16,18 @@ class EnglishTelBot:
         self.token = settings.TOKEN
         self.bot = TeleBot(self.token)
         self.handler = HandlerMain(self.bot)
-        self.markup = Markup()
 
-    @staticmethod
-    def set_bot_menu(commands: dict):
-        commands = [BotCommand(command=command, description=description) for command, description in commands.items()]
-        set_my_commands(token=settings.TOKEN, commands=commands)
+    def set_bot_menu(self, commands: dict):
+        menu_commands = [BotCommand(command=key, description=value) for key, value in commands.items()]
+        set_my_commands(token=self.token, commands=menu_commands)
 
-    @staticmethod
-    def set_bot_settings(bot_name: str, description: str):
-        set_my_name(token=settings.TOKEN, name=bot_name)
+    def set_bot_settings(self, bot_name: str, description: str):
+        set_my_name(token=self.token, name=bot_name)
         # set_my_short_description(token=settings.TOKEN, short_description=description)
 
 
     def start(self):
-        # self.set_bot_menu(MENU_COMMANDS)
+        self.set_bot_menu(MENU_COMMANDS)
         # self.set_bot_settings(bot_name=settings.BOT_NAME, description=MESSAGES['BOT_DESCRIPTION'])
         self.handler.handle()
 
