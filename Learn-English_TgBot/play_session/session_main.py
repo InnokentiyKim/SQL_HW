@@ -22,6 +22,7 @@ class PlaySession(PlaySessionCore):
     def _get_next_target_word(self) -> Word | None:
         if self.target_words and not self.is_target_list_ended:
             self.current_target_word = self.target_words[self.target_word_index]
+            self.refresh_current_word_stats()
             self.target_word_index += 1
             return self.current_target_word
         else:

@@ -70,8 +70,13 @@ class HandlerMain(HandlerFunctions):
             if message.text == '/cards':
                 self.pressed_button_cards(message)
 
+        @self.bot.message_handler(commands=[COMMANDS['INFO']])
+        def handle(message):
+            if message.text == '/info':
+                self.pressed_button_info(message)
+
         @self.bot.message_handler(func=lambda message: message.text == COMMANDS['ADD_WORD'])
-        def handle_new_word(message):
+        def handle_add_new_word(message):
             if message.text == '/add_word':
                 chat_id = message.chat.id
                 self.bot.send_message(chat_id, "Введите слово на русском: ")
@@ -113,15 +118,13 @@ class HandlerMain(HandlerFunctions):
         def handle_text(message):
             if message.text == KEYBOARD['NEXT_STEP']:
                 self.pressed_button_next(message)
+            elif message.text == KEYBOARD['SETTINGS']:
+                self.pressed_button_settings(message)
             elif message.text == KEYBOARD['BACK']:
                 self.pressed_button_back(message)
             elif message.text == KEYBOARD['ADD_WORD']:
                 pass
             elif message.text == KEYBOARD['DELETE_WORD']:
                 pass
-            elif message.text == KEYBOARD['SETTINGS']:
-                self.pressed_button_settings(message)
-            elif message.text == KEYBOARD['INFO']:
-                self.pressed_button_info(message)
             else:
                 self.check_answer(message, self.play_session.user.user_settings.translation_mode)

@@ -72,7 +72,8 @@ COMMANDS = {
     'PLAY': 'play',
     'ADD_WORD': 'add_word',
     'DELETE_WORD': 'delete_word',
-    'SETTINGS': 'settings'
+    'SETTINGS': 'settings',
+    'INFO': 'info',
 }
 
 MENU_COMMANDS = {
