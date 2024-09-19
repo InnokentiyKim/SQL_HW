@@ -15,6 +15,7 @@ class HandlerFunctions(Handler):
     def __init__(self, bot):
         super().__init__(bot)
         self.play_session = PlaySession()
+        self.navigation_keyboard = [KEYBOARD['HINT'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
 
     def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -34,32 +35,37 @@ class HandlerFunctions(Handler):
 
     def get_next_card(self, message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
         card = self.play_session.get_words_for_card()
-        navigation_names = [KEYBOARD['HINT'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
         if card:
+            word_names = []
+            words_message = ''
+            target_title = ''
             if play_mode == TranslationMode.RUS_TO_ENG:
-                button_names = [word.eng_title for word in card.get('all')]
-                main_keyboard = self.markup.get_main_keyboard(button_names, navigation_names)
-                self.markup.active_keyboard = main_keyboard
-                self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
-                                                       f"{card.get('target').rus_title}", reply_markup=main_keyboard)
+                word_names = [word.eng_title for word in card.get('all')]
+                target_title = card.get('target').rus_title
+                words_message = f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']}"
             elif play_mode == TranslationMode.ENG_TO_RUS:
                 word_names = [word.rus_title for word in card.get('all')]
-                main_keyboard = self.markup.get_main_keyboard(word_names, navigation_names)
-                self.markup.active_keyboard = main_keyboard
-                self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
-                                                       f"{card.get('target').eng_title}", reply_markup=main_keyboard)
+                target_title = card.get('target').eng_title
+                words_message = f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
+            main_keyboard = self.markup.get_main_keyboard(word_names, self.navigation_keyboard)
+            self.markup.active_keyboard = main_keyboard
+            self.bot.send_message(message.chat.id, f"{words_message} {target_title}", reply_markup=main_keyboard)
         else:
-            pass
+            user = self.play_session.user
+            if not user:
+                user = self.DB.identify_user(message.from_user.id)
+            self.play_session.init_session(user)
+            self.bot.send_message(message.chat.id, f"Список слов закончился. Нажмите далее для загрузки следующего списка",
+                                  reply_markup=self.markup.active_keyboard)
 
 
-    @staticmethod
-    def get_words_description(word: str) -> dict:
-        try:
-            response = requests.get(settings.WORDS_URL, params={'words': word}).json()
-            description = response.get('description')
-        except Exception as error:
-            description = None
-        return description
+    def get_hint(self, message, word: str = None) -> None:
+        word = self.play_session.current_target_word.eng_title if not word else word.lower().strip()
+        hint = self.play_session.get_words_description(word)
+        if hint:
+            self.bot.send_message(message.chat.id, f"Подсказка: {hint}")
+        else:
+            self.bot.send_message(message.chat.id, f"К сожалению, подсказка недоступна")
 
     # def get_bots_menu(self, message, menu_list: list[str] | None = None, one_time: bool = False):
     #     if not menu_list:

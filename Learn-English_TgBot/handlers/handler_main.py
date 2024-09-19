@@ -44,6 +44,9 @@ class HandlerMain(HandlerFunctions):
     def pressed_button_settings(self, message: Message):
         pass
 
+    def pressed_button_get_hint(self, message: Message):
+        self.get_hint(message)
+
     def pressed_button_info(self, message: Message):
         self.get_info(message)
 
@@ -120,6 +123,8 @@ class HandlerMain(HandlerFunctions):
                 self.pressed_button_next(message)
             elif message.text == KEYBOARD['SETTINGS']:
                 self.pressed_button_settings(message)
+            elif message.text == KEYBOARD['HINT']:
+                self.pressed_button_get_hint(message)
             elif message.text == KEYBOARD['BACK']:
                 self.pressed_button_back(message)
             elif message.text == KEYBOARD['ADD_WORD']:

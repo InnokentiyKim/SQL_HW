@@ -1,3 +1,4 @@
+from sqlalchemy import distinct
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session, Singleton, Base, engine
@@ -82,9 +83,9 @@ class DBManager(metaclass=Singleton):
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
         category = category.capitalize().strip()
         query = (
-            sa.select(Word).filter(Word.user_id == user_id)
+            sa.select(Word)
+            .filter(Word.user_id == user_id)
             .options(joinedload(Word.word_stats))
-            .filter(WordStats.is_studied == is_studied)
             .options(selectinload(Word.category))
             .filter(Category.name == category)
             .filter(WordStats.is_studied == is_studied)
@@ -99,7 +100,9 @@ class DBManager(metaclass=Singleton):
                           amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
         category = category.capitalize().strip()
         query = (
-            sa.select(Word).filter(Word.user_id == user_id)
+            sa.select(Word)
+            .filter(Word.user_id == user_id)
+            .options(joinedload(Word.word_stats))
             .options(selectinload(Word.category))
             .filter(Category.name == category)
             .order_by(sa.func.random())
