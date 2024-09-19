@@ -2,12 +2,12 @@ from handlers.handler_core import Handler
 from telebot.types import Message
 from markup.markups import Markup
 from models.bot_user import BotUser
+from models.word import Word
 from settings.config import KEYBOARD, TranslationMode
 from settings.messages import MESSAGES
 from settings.config import settings
 from play_session.session_main import PlaySession
 import requests
-
 from source.data_models import TargetWord
 
 
@@ -30,11 +30,11 @@ class HandlerFunctions(Handler):
         else:
             self.bot.send_message(message.chat.id, f"С возвращением, {message.from_user.first_name}! Рада видеть вас снова!")
         self.play_session.init_session(user)
-        self.bot.send_message(message.chat.id, f"Чтобы начать введите команду 'play' или 'cards'")
+        self.bot.send_message(message.chat.id, f"Чтобы начать введите команду '/cards'")
 
     def get_next_card(self, message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
         card = self.play_session.get_words_for_card()
-        navigation_names = [KEYBOARD['INFO'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
+        navigation_names = [KEYBOARD['HINT'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
         if card:
             if play_mode == TranslationMode.RUS_TO_ENG:
                 button_names = [word.eng_title for word in card.get('all')]
@@ -90,6 +90,8 @@ class HandlerFunctions(Handler):
 
     def get_user_settings(self, message):
         pass
+        # TODO: add get_user_settings using DB
+
 
     def get_info(self, message):
         main_keyboard = self.markup.active_keyboard
@@ -99,34 +101,28 @@ class HandlerFunctions(Handler):
         main_keyboard = self.markup.active_keyboard
         self.bot.send_message(message.chat.id, f"Вы вернулись назад", reply_markup=main_keyboard, parse_mode='html')
 
-    def check_answer(self, message: Message, target_word: TargetWord, play_mode: TranslationMode):
+    def check_answer(self, message: Message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
+        target_word = self.play_session.current_target_word
         answer = str(message.text).capitalize().strip()
-        if play_mode == TranslationMode.RUS_TO_ENG:
-            if not target_word.is_answered:
-                if target_word.eng_title == answer:
-                    target_word.is_answered = True
-                    self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.markup.active_keyboard)
-                else:
-                    self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
-                    self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} "
-                                                           f"{KEYBOARD['RUS']} {target_word.rus_title}",
-                                          reply_markup=self.markup.active_keyboard)
+        if not self.play_session.is_answered and target_word:
+            true_answer = ''
+            if play_mode == TranslationMode.RUS_TO_ENG:
+                true_answer = target_word.eng_title
+            elif play_mode == TranslationMode.ENG_TO_RUS:
+                true_answer = target_word.rus_title
+            if true_answer.capitalize().strip() == answer:
+                self.play_session.increase_target_words_stats()
+                self.play_session.increase_player_stats()
+                self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.markup.active_keyboard)
             else:
-                self.bot.send_message(message.chat.id, "Вы уже отгадали это слово. Нажмите 'Далее'",
-                                      reply_markup=self.markup.active_keyboard)
-        elif play_mode == TranslationMode.ENG_TO_RUS:
-            if not target_word.is_answered:
-                if target_word.rus_title == answer:
-                    target_word.is_answered = True
-                    self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.markup.active_keyboard)
-                else:
-                    self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
-                    self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} "
-                                                           f"{KEYBOARD['ENG']} {target_word.eng_title}",
-                                          reply_markup=self.markup.active_keyboard)
-            else:
-                self.bot.send_message(message.chat.id, "Вы уже отгадали это слово. Нажмите 'Далее'",
-                                      reply_markup=self.markup.active_keyboard)
+                self.play_session.decrease_target_words_stats()
+                self.play_session.decrease_player_stats()
+                self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
+                self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {KEYBOARD['RUS']} "
+                                                       f"{target_word.rus_title}", reply_markup=self.markup.active_keyboard)
+        else:
+            self.bot.send_message(message.chat.id, "Вы уже отгадали это слово. Нажмите 'Далее'",
+                                  reply_markup=self.markup.active_keyboard)
 
     def handle(self):
         pass

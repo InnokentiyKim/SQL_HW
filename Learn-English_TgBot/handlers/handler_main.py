@@ -124,5 +124,4 @@ class HandlerMain(HandlerFunctions):
             elif message.text == KEYBOARD['INFO']:
                 self.pressed_button_info(message)
             else:
-                pass
-                # self.check_answer(message)
+                self.check_answer(message, self.play_session.user.user_settings.translation_mode)

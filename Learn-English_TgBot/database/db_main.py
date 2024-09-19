@@ -83,8 +83,9 @@ class DBManager(metaclass=Singleton):
         category = category.capitalize().strip()
         query = (
             sa.select(Word).filter(Word.user_id == user_id)
-            .options(selectinload(Word.category))
             .options(joinedload(Word.word_stats))
+            .filter(WordStats.is_studied == is_studied)
+            .options(selectinload(Word.category))
             .filter(Category.name == category)
             .filter(WordStats.is_studied == is_studied)
             .order_by(sa.func.random())

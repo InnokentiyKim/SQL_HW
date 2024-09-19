@@ -28,6 +28,7 @@ class CategoryNested(BaseModel):
 class TargetWord(WordMain):
     user_id: int
     is_answered: bool = False
+    attempts_count: int = 0
     word_stats: WordStatsNested
     user: list[UserNested]
     categories: list[CategoryNested]

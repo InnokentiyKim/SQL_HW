@@ -1,15 +1,15 @@
 [
-  {"eng_title": "car", "rus_title": "автомобиль"},
-  {"eng_title": "plane", "rus_title": "самолет"},
-  {"eng_title": "train", "rus_title": "поезд"},
-  {"eng_title": "bus", "rus_title": "автобус"},
-  {"eng_title": "elephant", "rus_title": "слон"},
-  {"eng_title": "lion", "rus_title": "лев"},
-  {"eng_title": "squirrel", "rus_title": "белка"},
-  {"eng_title": "jeans", "rus_title": "джинсы"},
-  {"eng_title": "dress", "rus_title": "платье"},
-  {"eng_title": "shirt", "rus_title": "рубашка"},
-  {"eng_title": "blue", "rus_title": "синий"},
-  {"eng_title": "yellow", "rus_title": "желтый"},
-  {"eng_title": "purple", "rus_title": "фиолетовый"}
+  {"eng_title": "Car", "rus_title": "Автомобиль"},
+  {"eng_title": "Plane", "rus_title": "Самолет"},
+  {"eng_title": "Train", "rus_title": "Поезд"},
+  {"eng_title": "Bus", "rus_title": "Автобус"},
+  {"eng_title": "Elephant", "rus_title": "Слон"},
+  {"eng_title": "Lion", "rus_title": "Лев"},
+  {"eng_title": "Squirrel", "rus_title": "Белка"},
+  {"eng_title": "Jeans", "rus_title": "Джинсы"},
+  {"eng_title": "Dress", "rus_title": "Платье"},
+  {"eng_title": "Shirt", "rus_title": "Рубашка"},
+  {"eng_title": "Blue", "rus_title": "Синий"},
+  {"eng_title": "Yellow", "rus_title": "Желтый"},
+  {"eng_title": "Purple", "rus_title": "Фиолетовый"}
 ]

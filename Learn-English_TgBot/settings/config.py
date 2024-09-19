@@ -22,9 +22,10 @@ class Settings(AdvancedBaseSettings):
     URL: str = Field(env='URL', default='localhost')
     WORDS_URL: str = "https://api.dictionaryapi.dev/api/v2/entries/en/"
     WORDS_LIMIT: int = 10
+    WORDS_IN_CARDS: int = 4
+    IS_STUDIED_COND: int = 5
     TARGET_WORDS_CHUNK_SIZE: int = 10
     OTHER_WORDS_CHUNK_SIZE: int = 50
-    WORDS_IN_CARDS: int = 4
     VERSION: str = '1.0.0'
     AUTHOR: str = 'InnCent'
     BOT_NAME: str = 'LearnEnglishVocabularyBot'
@@ -42,6 +43,7 @@ settings = Settings()
 
 KEYBOARD = {
     'INFO': emojize("💬 INFO о боте"),
+    'HINT': emojize("📖 Подсказка"),
     'MENU': emojize("⚙ Меню"),
     'SETTINGS': emojize("🔧 Настройки"),
     'NEXT_STEP': emojize("➡ Дальше"),
@@ -74,10 +76,11 @@ COMMANDS = {
 }
 
 MENU_COMMANDS = {
-    "start": "Начать",
-    "help": "Помощь",
-    "add_word": "Добавить слово",
-    "delete_word": "Удалить слово",
+    'start': 'Начать',
+    'help': 'Помощь',
+    'add_word': 'Добавить слово',
+    'delete_word': 'Удалить слово',
+    'info': 'О боте'
 }
 
 

@@ -1,6 +1,4 @@
 import json
-
-from pydantic import TypeAdapter
 from bot_logging.bot_logging import error_logging, LOGGER_PATH
 from models.bot_user import BotUser
 from models.category import Category

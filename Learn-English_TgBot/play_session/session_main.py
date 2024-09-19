@@ -30,7 +30,10 @@ class PlaySession(PlaySessionCore):
 
     def _get_next_other_words(self, amount: int) -> list[Word]:
         if self.other_words and len(self.other_words) >= amount:
-            return choices(population=self.other_words, k=amount)
+            choices_list = list(self.other_words)
+            if self.current_target_word in self.other_words:
+                choices_list.remove(self.current_target_word)
+            return choices(population=choices_list, k=amount)
         else:
             return []
 
@@ -43,31 +46,6 @@ class PlaySession(PlaySessionCore):
         return {'target': target_word, 'other': other_words, 'all': all_words}
 
 
-
-
-
-    # def _cards_desk(self, words: list[str], items_in_line: int = 2):
-    #     self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    #     self.DB.get_next_card(user_id)
-    #     words = self.DB.user_words
-    #     if play_mode == 0:
-    #         item_buttons = [[self.set_word_button(word.eng_title)] for word in words]
-    #     for count, item in enumerate(item_buttons):
-    #         self.markup.row(item)
-    #     self.markup.row(item_buttons[0], item_buttons[1])
-    #     self.markup.row()
-    #     self.markup.row(item_buttons[2], item_buttons[3])
-    #     return self.markup
-
-    # def get_next_word_keyboard(self, user_id: int):
-    #     self.DB.is_answered = False
-    #     self.markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    #     self.markup = self._cards_desk(user_id)
-    #     menu_button = self.keyboards.set_command_button('MENU')
-    #     next_step_button = self.keyboards.set_command_button('NEXT_STEP')
-    #     self.markup.row(menu_button, next_step_button)
-    #     self.active_keyboard = self.markup
-    #     return self.markup
 
     # def get_menu_keyboard(self):
     #     buttons = ['ADD_WORD', 'DELETE_WORD', 'SETTINGS', 'BACK', 'INFO']
