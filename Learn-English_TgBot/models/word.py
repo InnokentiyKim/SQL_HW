@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from database.db_core import Base
 from models.bot_user import BotUser
@@ -21,6 +21,7 @@ class Word(Base):
 
     __tableargs__ = (
         UniqueConstraint('rus_title', 'eng_title'),
+        Index('word_title_idx', 'rus_title', 'eng_title'),
     )
 
     def __str__(self):

@@ -1,4 +1,4 @@
-from sqlalchemy import distinct
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session, Singleton, Base, engine
@@ -30,6 +30,11 @@ class DBManager(metaclass=Singleton):
             familiar_user = session.execute(query).scalars().first()
             return familiar_user if familiar_user else None
 
+    @staticmethod
+    def format_title(title: str) -> str:
+        title = title.replace('_', ' ').strip().capitalize()
+        return title
+
     def add_new_user(self, user_id: int, user_name: str = '') -> BotUser | None:
         new_user = BotUser(id=user_id, name=user_name)
         try:
@@ -50,7 +55,6 @@ class DBManager(metaclass=Singleton):
                 words_stats = [WordStats(word=word) for word in words]
                 session.add_all(words_stats)
                 session.commit()
-                print(new_user)
                 return new_user
         except sa.exc.IntegrityError:
             pass
@@ -59,7 +63,7 @@ class DBManager(metaclass=Singleton):
         return None
 
     def get_category_by_name(self, user_id: int, name: str) -> Category | None:
-        name = name.capitalize().strip()
+        name = self.format_title(name)
         with self._session as session:
             query = (
                 sa.select(Category).filter(Category.name.ilike(f"{name}"))
@@ -67,21 +71,35 @@ class DBManager(metaclass=Singleton):
                 .filter(Word.user_id == user_id).first()
             )
             category = session.execute(query).scalars().first()
-        return category if category else None
+        return category
 
-    def find_words(self, user_id: int, words_title: str) -> list[Word] | None:
-        words_title = words_title.capitalize().strip()
+    def add_new_category(self, user_id: int, name: str) -> Category | None:
+        name = self.format_title(name)
+        new_category = Category(name=name)
+        try:
+            with self._session as session:
+                session.add(new_category)
+                session.commit()
+                return new_category
+        except sa.exc.IntegrityError:
+            pass
+        except Exception as error:
+            pass
+        return None
+
+    def find_word(self, user_id: int, words_title: str) -> Word | None:
+        words_title = self.format_title(words_title)
         with self._session as session:
             query = (
                 sa.select(Word).filter(Word.user_id == user_id)
                 .filter(or_(Word.rus_title.ilike(f"{words_title}"), Word.eng_title.ilike(f"{words_title}")))
             )
-            word = session.execute(query).scalars().all()
+            word = session.execute(query).scalars().first()
         return word
 
     def get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
-        category = category.capitalize().strip()
+        category = self.format_title(category)
         query = (
             sa.select(Word)
             .filter(Word.user_id == user_id)
@@ -98,7 +116,7 @@ class DBManager(metaclass=Singleton):
 
     def get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
-        category = category.capitalize().strip()
+        category = self.format_title(category)
         query = (
             sa.select(Word)
             .filter(Word.user_id == user_id)
@@ -112,42 +130,55 @@ class DBManager(metaclass=Singleton):
             other_words = session.execute(query).scalars().all()
         return other_words
 
-    def check_new_word(self, user_id, word: str) -> bool:
-        word = word.capitalize().strip()
-        with self._session as session:
-            query = (
-                sa.select(Word).filter(Word.user_id == user_id)
-                .filter(or_(Word.rus_title.ilike(f'{word}'), Word.eng_title.ilike(f'{word}')))
-            )
-            selected_word = session.execute(query).scalars().first()
-        return selected_word is not None
-
     def add_new_word(self, user: BotUser, rus_title, eng_title, category_name = CATEGORIES['COMMON']['name']) -> bool:
         try:
+            rus_title = self.format_title(rus_title)
+            eng_title = self.format_title(eng_title)
+            category_name = self.format_title(category_name)
             category = self.get_category_by_name(user.id, category_name)
             if not category:
-                return False
-            word_stats = WordStats()
-            new_word = Word(rus_title=rus_title, eng_title=eng_title, user=user, category=[category], word_stats=word_stats)
+                category = self.add_new_category(user.id, category_name)
+            new_word = Word(rus_title=rus_title, eng_title=eng_title, user=user)
             with self._session as session:
-                session.add(new_word).commit()
+                session.add(new_word).flush()
+                new_word_stats = WordStats(word=new_word)
+                session.add(new_word_stats).flush()
+                new_category_word = CategoryWord(word_details=new_word, category_details=category)
+                session.add(new_category_word)
+                session.commit()
             return True
         except sa.exc.IntegrityError:
-            return False
-        except sa.exc.UniqueViolation:
-            return False
+            pass
+        except Exception as error:
+            pass
+        return False
+
+    def delete_word(self, user: BotUser, word: str) -> bool:
+        try:
+            word = self.format_title(word)
+            with self._session as session:
+                deleting_word = self.find_word(user.id, word)
+                if deleting_word:
+                    session.delete(word)
+                    session.commit()
+                    return True
+                return False
         except Exception as error:
             return False
 
-    def delete_word(self, user_id: int, word: str) -> bool:
+    def delete_category(self, user: BotUser, category_name: str) -> bool:
+        category = self.format_title(category_name)
+        if category == CATEGORIES['COMMON']['name']:
+            return False
         try:
             with self._session as session:
-                deleting_words = self.find_words(user_id, word)
-                if not deleting_words:
-                    return False
-                for word in deleting_words:
-                    session.delete(word)
-                session.commit()
+                deleting_category = self.get_category_by_name(user.id, category)
+                if deleting_category:
+                    session.delete(deleting_category)
+                    session.commit()
             return True
+        except sa.exc.IntegrityError:
+            pass
         except Exception as error:
-            return False
+            pass
+        return False

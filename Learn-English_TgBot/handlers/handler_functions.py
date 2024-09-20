@@ -7,8 +7,6 @@ from settings.config import KEYBOARD, TranslationMode
 from settings.messages import MESSAGES
 from settings.config import settings
 from play_session.session_main import PlaySession
-import requests
-from source.data_models import TargetWord
 
 
 class HandlerFunctions(Handler):
