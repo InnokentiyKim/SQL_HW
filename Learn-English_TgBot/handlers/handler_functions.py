@@ -1,7 +1,7 @@
 from handlers.handler_core import Handler
 from telebot.types import Message
 from models.bot_user import BotUser
-from settings.config import KEYBOARD, TranslationMode
+from settings.config import KEYBOARD, TranslationMode, ALIASES
 from settings.messages import MESSAGES
 from play_session.session_main import PlaySession
 
@@ -56,6 +56,7 @@ class HandlerFunctions(Handler):
 
 
     def get_hint(self, message, word: str = None) -> None:
+        # TODO: implement in-memory cached hints
         word = self.play_session.current_target_word.eng_title if not word else word.lower().strip()
         hint = self.play_session.get_words_description(word)
         if hint:
@@ -72,24 +73,28 @@ class HandlerFunctions(Handler):
 
     def add_new_word(self, message, rus_title: str, eng_title: str, category_name: str):
         user = self.play_session.user
-        if not category_name:
-            is_word_added = self.DB.add_new_word(user, rus_title, eng_title)
+        category_name = category_name.lower().strip()
+        if category_name in ALIASES.get('BASIC'):
+            is_word_added = self.DB.add_new_word(user=user, rus_title=rus_title, eng_title=eng_title)
         else:
-            is_word_added = self.DB.add_new_word(user, rus_title, eng_title, category_name)
-        words_title = f"{rus_title} - {eng_title}"
+            is_word_added = self.DB.add_new_word(user=user, rus_title=rus_title,
+                                             eng_title=eng_title, category_name=category_name)
+        words_title = f"({rus_title} - {eng_title})"
         if is_word_added:
-            self.bot.send_message(message.chat.id, f"Слово {words_title} добавлено", parse_mode='html')
+            self.bot.send_message(message.chat.id, f"Слово {words_title} добавлено",
+                                  reply_markup=self.markup.active_keyboard, parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"Слово {words_title} уже существует", parse_mode='html')
+            self.bot.send_message(message.chat.id, f"Слово {words_title} уже существует",
+                                  reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def delete_word(self, message, word: str):
         user = self.play_session.user
-        word_deleted = self.DB.delete_word(user, word)
+        word_deleted = self.DB.delete_word(user=user, word=word)
         if word_deleted:
-            self.bot.send_message(message.chat.id, f"Слово {word} удалено",
+            self.bot.send_message(message.chat.id, f"Слово ({word}) удалено",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"Слово {word} не найдено",
+            self.bot.send_message(message.chat.id, f"Слово ({word}) не найдено",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def get_user_settings(self, message):
@@ -131,9 +136,11 @@ class HandlerFunctions(Handler):
     @staticmethod
     def validate_input_word(word: str) -> bool:
         # TODO: add validation using regex
-        if isinstance(word, str) and '.,!?-;' not in word:
-            return True
+        if isinstance(word, str):
+            if word.strip() and '.,!?-;' not in word:
+                return True
         return False
 
     def handle(self):
         pass
+

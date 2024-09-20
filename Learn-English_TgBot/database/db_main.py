@@ -32,8 +32,8 @@ class DBManager(metaclass=Singleton):
 
     @staticmethod
     def format_title(title: str) -> str:
-        title = title.replace('_', ' ').strip().capitalize()
-        return title
+        new_title = title.replace('_', ' ').strip().capitalize()
+        return new_title
 
     def add_new_user(self, user_id: int, user_name: str = '') -> BotUser | None:
         new_user = BotUser(id=user_id, name=user_name)
@@ -68,12 +68,22 @@ class DBManager(metaclass=Singleton):
             query = (
                 sa.select(Category).filter(Category.name.ilike(f"{name}"))
                 .options(selectinload(Category.word))
-                .filter(Word.user_id == user_id).first()
+                .filter(Word.user_id == user_id)
             )
             category = session.execute(query).scalars().first()
         return category
 
-    def add_new_category(self, user_id: int, name: str) -> Category | None:
+    def get_all_users_categories(self, user_id: int) -> list[Category] | None:
+        with self._session as session:
+            query = (
+                sa.select(Category)
+                .options(selectinload(Category.word))
+                .filter(Word.user_id == user_id)
+            )
+            categories = session.execute(query).scalars().all()
+        return categories
+
+    def add_new_category(self, name: str) -> Category | None:
         name = self.format_title(name)
         new_category = Category(name=name)
         try:
@@ -88,14 +98,14 @@ class DBManager(metaclass=Singleton):
         return None
 
     def find_word(self, user_id: int, words_title: str) -> Word | None:
-        words_title = self.format_title(words_title)
+        words_title = self.format_title(title=words_title)
         with self._session as session:
             query = (
                 sa.select(Word).filter(Word.user_id == user_id)
                 .filter(or_(Word.rus_title.ilike(f"{words_title}"), Word.eng_title.ilike(f"{words_title}")))
             )
-            word = session.execute(query).scalars().first()
-        return word
+            found_word = session.execute(query).scalars().first()
+        return found_word
 
     def get_target_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
                           amount: int = settings.TARGET_WORDS_CHUNK_SIZE, is_studied: int = 0) -> list[Word]:
@@ -135,14 +145,16 @@ class DBManager(metaclass=Singleton):
             rus_title = self.format_title(rus_title)
             eng_title = self.format_title(eng_title)
             category_name = self.format_title(category_name)
-            category = self.get_category_by_name(user.id, category_name)
-            if not category:
-                category = self.add_new_category(user.id, category_name)
-            new_word = Word(rus_title=rus_title, eng_title=eng_title, user=user)
+            category = self.get_category_by_name(user_id=user.id, name=category_name)
+            new_word = Word(rus_title=rus_title, eng_title=eng_title, bot_user=user)
             with self._session as session:
-                session.add(new_word).flush()
+                if not category:
+                    category = Category(name=category_name)
+                    session.add(category)
+                session.add(new_word)
+                session.flush()
                 new_word_stats = WordStats(word=new_word)
-                session.add(new_word_stats).flush()
+                session.add(new_word_stats)
                 new_category_word = CategoryWord(word_details=new_word, category_details=category)
                 session.add(new_category_word)
                 session.commit()
@@ -155,14 +167,13 @@ class DBManager(metaclass=Singleton):
 
     def delete_word(self, user: BotUser, word: str) -> bool:
         try:
-            word = self.format_title(word)
             with self._session as session:
-                deleting_word = self.find_word(user.id, word)
+                deleting_word = self.find_word(user_id=user.id, words_title=word)
                 if deleting_word:
-                    session.delete(word)
+                    session.delete(deleting_word)
                     session.commit()
                     return True
-                return False
+            return False
         except Exception as error:
             return False
 

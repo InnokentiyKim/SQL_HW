@@ -89,7 +89,7 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.new_users_word['eng_title'] = eng_word
                 self.bot.register_next_step_handler(message, get_category)
-                self.bot.send_message(message.chat.id, "Введите категорию (Пробел - общая категория): ")
+                self.bot.send_message(message.chat.id, "Введите категорию ('all' или 'все' - <Общая категория>): ")
             else:
                 self.bot.send_message(message.chat.id, "Неверный формат слова. Введите слово на английском: ")
 
@@ -104,7 +104,7 @@ class HandlerMain(HandlerFunctions):
                 )
             else:
                 self.bot.send_message(message.chat.id, "Неверный формат категории. "
-                                                       "Введите категорию (Пробел - общая категория): ")
+                                                       "Введите категорию ('all' или 'все' - <Общая категория>): ")
 
         @self.bot.message_handler(commands=COMMANDS['DELETE_WORD'])
         def handle_delete_word(message):
@@ -112,10 +112,10 @@ class HandlerMain(HandlerFunctions):
             self.bot.register_next_step_handler(message, get_deleting_word)
 
         def get_deleting_word(message):
-            word = message.text
-            is_valid_word = self.validate_input_word(word)
+            deleting_word = message.text
+            is_valid_word = self.validate_input_word(deleting_word)
             if is_valid_word:
-                self.delete_word(message, word)
+                self.delete_word(message, deleting_word)
             else:
                 self.bot.send_message(message.chat.id, "Неверный формат слова. "
                                                        "Введите слово на русском или на английском: ")

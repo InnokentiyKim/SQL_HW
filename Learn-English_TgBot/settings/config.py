@@ -57,6 +57,10 @@ KEYBOARD = {
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]
 
+ALIASES = {
+    'BASIC': ['all', 'все'],
+}
+
 CATEGORIES = {
     'COMMON': {'value': 1, 'name': 'Общие'},
     'TRANSPORT': {'value': 2, 'name': 'Транспорт'},
