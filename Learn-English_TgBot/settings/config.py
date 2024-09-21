@@ -25,7 +25,7 @@ class Settings(AdvancedBaseSettings):
     WORDS_IN_CARDS: int = 4
     IS_STUDIED_COND: int = 5
     TARGET_WORDS_CHUNK_SIZE: int = 10
-    OTHER_WORDS_CHUNK_SIZE: int = 50
+    OTHER_WORDS_CHUNK_SIZE: int = 5 * TARGET_WORDS_CHUNK_SIZE
     VERSION: str = '1.0.0'
     AUTHOR: str = 'InnCent'
     BOT_NAME: str = 'LearnEnglishVocabularyBot'
@@ -51,9 +51,24 @@ KEYBOARD = {
     'DELETE_WORD': emojize("❌ Удалить слово"),
     'BACK': emojize("🔙 Назад"),
     'COPY': emojize(":copyright:"),
+    'NOTIFICATIONS': "Уведомления",
+    'TRANSLATION_MODE': "Режим перевода",
+    'WORDS_CHUCK_SIZE': "Размер пула слов",
     'RUS': emojize("🇷🇺"),
     'ENG': emojize("🇺🇲")
 }
+
+NAVIGATION_KEYBOARD = [
+    KEYBOARD['HINT'],
+    KEYBOARD['SETTINGS'],
+    KEYBOARD['NEXT_STEP'],
+]
+
+SETTINGS_KEYBOARD = [
+    'Уведомления',
+    'Режим перевода',
+    'Размер пула слов',
+]
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]
 
@@ -76,7 +91,6 @@ COMMANDS = {
     'PLAY': 'play',
     'ADD_WORD': 'add_word',
     'DELETE_WORD': 'delete_word',
-    'SETTINGS': 'settings',
     'INFO': 'info',
 }
 

@@ -1,4 +1,4 @@
-from telebot.types import Message
+from telebot.types import Message, CallbackQuery
 from handlers.handler_functions import HandlerFunctions
 from models.bot_user import BotUser
 from settings.config import COMMANDS, KEYBOARD
@@ -36,7 +36,7 @@ class HandlerMain(HandlerFunctions):
     #     self.get_bots_menu(message)
 
     def pressed_button_settings(self, message: Message):
-        pass
+        self.get_user_settings(message)
 
     def pressed_button_get_hint(self, message: Message):
         self.get_hint(message)
@@ -49,6 +49,9 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_next(self, message: Message):
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
+        
+    def pressed_button_notification(self, call: CallbackQuery):
+        self.bot.send_message(chat_id=call.message.chat.id, text="Уведомления включены")
 
 
     def handle(self):
@@ -119,6 +122,10 @@ class HandlerMain(HandlerFunctions):
             else:
                 self.bot.send_message(message.chat.id, "Неверный формат слова. "
                                                        "Введите слово на русском или на английском: ")
+
+        @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['NOTIFICATION'])
+        def handle_notification_pressed(call: CallbackQuery):
+            self.pressed_button_notification(call)
 
 
         @self.bot.message_handler(func=lambda message: True)

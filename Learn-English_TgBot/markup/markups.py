@@ -22,6 +22,12 @@ class Markup:
         navigation_buttons = [self.keyboards.set_command_button(button) for button in buttons_names]
         return navigation_buttons
 
+    def get_settings_keyboard(self, buttons_names: list[str]):
+        settings_buttons = [self.keyboards.set_settings_button(button, data=button) for button in buttons_names]
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.row(*settings_buttons)
+        return markup
+
     def get_main_keyboard(self, words: list[str], navigation: list[str], words_in_line: int = 2, commands_in_line: int = 3):
         markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
         words_keyboard = self._get_words_keyboard(words)

@@ -1,6 +1,6 @@
-from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel, PositiveInt, Field
+from settings.config import TranslationMode
 
 
 class WordMain(BaseModel):
@@ -8,45 +8,16 @@ class WordMain(BaseModel):
     rus_title: str
     eng_title: str
 
-class WordStatsNested(BaseModel):
-    id: int
-    is_studied: int
-    number_of_attempts: int
-    successful_attempts: int
-    success_streak: int
-
-class UserNested(BaseModel):
-    id: int
-    name: Optional[str]
-    created_at: datetime
-    last_seen_at: datetime
-
-class CategoryNested(BaseModel):
-    id: int
-    name: str
-
-class TargetWord(WordMain):
-    user_id: int
-    is_answered: bool = False
-    attempts_count: int = 0
-    word_stats: WordStatsNested
-    user: list[UserNested]
-    categories: list[CategoryNested]
-
-
-class OtherWord(WordMain):
-    is_studied: int
+class UserSettingsDTO:
+    id: PositiveInt
+    notification: int = 0
+    translation_mode: TranslationMode
+    words_chuck_size: int
 
 
 class BotUserDTO(BaseModel):
     id: PositiveInt
     name: Optional[str]
-
-
-class UserSettingsDTO(BaseModel):
-    id: PositiveInt
-    notification: int = 0
-    translation_mode: PositiveInt = 1
 
 
 class UserStatsDTO(BaseModel):

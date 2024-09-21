@@ -1,8 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
-from sqlalchemy.testing.plugin.plugin_base import options
-
 from database.db_core import Session, Singleton, Base, engine
 from models.category_word import CategoryWord
 from models.user_settings import UserSettings
@@ -87,19 +85,15 @@ class DBManager(metaclass=Singleton):
             categories = session.execute(query).scalars().all()
         return categories
 
-    def add_new_category(self, name: str) -> Category | None:
-        name = self.format_title(name)
-        new_category = Category(name=name)
-        try:
-            with self._session as session:
-                session.add(new_category)
-                session.commit()
-                return new_category
-        except sa.exc.IntegrityError:
-            pass
-        except Exception as error:
-            pass
-        return None
+    def get_user_settings(self, user_id: int) -> UserSettings | None:
+        with self._session as session:
+            cur_settings = session.get(UserSettings, user_id)
+            return cur_settings
+
+    def update_user_settings(self, new_settings: UserSettings) -> None:
+        with self._session as session:
+            session.add(new_settings)
+            session.commit()
 
     def find_word(self, user_id: int, words_title: str) -> Word | None:
         words_title = self.format_title(title=words_title)
@@ -130,7 +124,7 @@ class DBManager(metaclass=Singleton):
         return target_words
 
     def get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
-                          amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
+                        amount: int = settings.OTHER_WORDS_CHUNK_SIZE) -> list[Word]:
         category = self.format_title(category)
         query = (
             sa.select(Word)
@@ -171,12 +165,17 @@ class DBManager(metaclass=Singleton):
         return False
 
     def delete_word(self, user: BotUser, word: str) -> bool:
-        with self._session as session:
-            deleting_word = self.find_word(user_id=user.id, words_title=word)
-            if deleting_word:
-                session.delete(deleting_word)
-                session.commit()
-                return True
+        try:
+            with self._session as session:
+                deleting_word = self.find_word(user_id=user.id, words_title=word)
+                if deleting_word:
+                    session.delete(deleting_word)
+                    session.commit()
+                    return True
+        except sa.exc.IntegrityError:
+            pass
+        except Exception as error:
+            pass
         return False
 
     def delete_category(self, user: BotUser, category_name: str) -> bool:

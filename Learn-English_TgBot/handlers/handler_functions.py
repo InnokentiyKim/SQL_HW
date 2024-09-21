@@ -1,7 +1,8 @@
 from handlers.handler_core import Handler
 from telebot.types import Message
 from models.bot_user import BotUser
-from settings.config import KEYBOARD, TranslationMode, ALIASES
+from models.user_settings import UserSettings
+from settings.config import KEYBOARD, TranslationMode, ALIASES, SETTINGS_KEYBOARD, NAVIGATION_KEYBOARD
 from settings.messages import MESSAGES
 from play_session.session_main import PlaySession
 
@@ -11,7 +12,6 @@ class HandlerFunctions(Handler):
         super().__init__(bot)
         self.play_session = PlaySession()
         self.new_users_word = {}
-        self.navigation_keyboard = [KEYBOARD['HINT'], KEYBOARD['SETTINGS'], KEYBOARD['NEXT_STEP']]
 
     def get_help(self, message):
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
@@ -43,7 +43,7 @@ class HandlerFunctions(Handler):
                 word_names = [word.rus_title for word in card.get('all')]
                 target_title = card.get('target').eng_title
                 words_message = f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
-            main_keyboard = self.markup.get_main_keyboard(word_names, self.navigation_keyboard)
+            main_keyboard = self.markup.get_main_keyboard(word_names, NAVIGATION_KEYBOARD)
             self.markup.active_keyboard = main_keyboard
             self.bot.send_message(message.chat.id, f"{words_message} {target_title}", reply_markup=main_keyboard)
         else:
@@ -97,10 +97,30 @@ class HandlerFunctions(Handler):
             self.bot.send_message(message.chat.id, f"Слово ({word}) не найдено",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
-    def get_user_settings(self, message):
-        pass
-        # TODO: add get_user_settings using DB
+    @staticmethod
+    def _suit_user_settings(input_settings: UserSettings) -> str:
+        formatted_settings = {}
+        if input_settings.translation_mode == TranslationMode.RUS_TO_ENG:
+            formatted_settings['Режим перевода'] = 'С русского на английский'
+        elif input_settings.translation_mode == TranslationMode.ENG_TO_RUS:
+            formatted_settings['Режим перевода'] = 'С английского на русский'
+        if input_settings.notification:
+            formatted_settings['Уведомления'] = 'Включены'
+        else:
+            formatted_settings['Уведомления'] = 'Отключены'
+        res_string = "; ".join([f"{key}: {value}" for key, value in formatted_settings.items()])
+        return res_string
 
+    def get_user_settings(self, message):
+        user_settings = self.play_session.user.user_settings
+        if user_settings:
+            settings_string = self._suit_user_settings(user_settings)
+            answer_str = f"Текущие настройки:\n{settings_string}"
+        else:
+            answer_str = "Не удалось получить настройки"
+        settings_keyboard = self.markup.get_settings_keyboard(SETTINGS_KEYBOARD)
+        self.bot.send_message(message.chat.id, answer_str,
+                              reply_markup=settings_keyboard, parse_mode='html')
 
     def get_info(self, message):
         main_keyboard = self.markup.active_keyboard
