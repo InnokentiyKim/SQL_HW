@@ -51,11 +51,11 @@ KEYBOARD = {
     'DELETE_WORD': emojize("❌ Удалить слово"),
     'BACK': emojize("🔙 Назад"),
     'COPY': emojize(":copyright:"),
-    'NOTIFICATIONS': "Уведомления",
-    'TRANSLATION_MODE': "Режим перевода",
-    'WORDS_CHUCK_SIZE': "Размер пула слов",
+    'NOTIFICATION': "Вкл/Выкл напоминания",
+    'TRANSLATION_MODE': "Изменить режим перевода",
+    'WORDS_CHUCK_SIZE': "Изменить количество слов раунда",
     'RUS': emojize("🇷🇺"),
-    'ENG': emojize("🇺🇲")
+    'ENG': emojize("🇺🇲"),
 }
 
 NAVIGATION_KEYBOARD = [
@@ -65,9 +65,9 @@ NAVIGATION_KEYBOARD = [
 ]
 
 SETTINGS_KEYBOARD = [
-    'Уведомления',
-    'Режим перевода',
-    'Размер пула слов',
+    KEYBOARD['NOTIFICATION'],
+    KEYBOARD['TRANSLATION_MODE'],
+    KEYBOARD['WORDS_CHUCK_SIZE'],
 ]
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]

@@ -49,9 +49,9 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_next(self, message: Message):
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
-        
+
     def pressed_button_notification(self, call: CallbackQuery):
-        self.bot.send_message(chat_id=call.message.chat.id, text="Уведомления включены")
+        self.change_notification_state(call)
 
 
     def handle(self):
@@ -92,7 +92,8 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.new_users_word['eng_title'] = eng_word
                 self.bot.register_next_step_handler(message, get_category)
-                self.bot.send_message(message.chat.id, "Введите категорию ('all' или 'все' - <Общая категория>): ")
+                self.bot.send_message(message.chat.id, "Введите категорию (<i>all</i> или <i>все</i> - <i>Общая</i> категория): ",
+                                      parse_mode='html')
             else:
                 self.bot.send_message(message.chat.id, "Неверный формат слова. Введите слово на английском: ")
 
@@ -106,8 +107,8 @@ class HandlerMain(HandlerFunctions):
                     eng_title=self.new_users_word['eng_title'], category_name=self.new_users_word['category_name']
                 )
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат категории. "
-                                                       "Введите категорию ('all' или 'все' - <Общая категория>): ")
+                self.bot.send_message(message.chat.id, "Неверный формат категории. Введите категорию "
+                                                       "(<i>all</i> или <i>все</i> - <i>Общая</i> категория): ", parse_mode='html')
 
         @self.bot.message_handler(commands=COMMANDS['DELETE_WORD'])
         def handle_delete_word(message):

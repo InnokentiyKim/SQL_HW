@@ -57,6 +57,8 @@ class DBManager(metaclass=Singleton):
                 words_stats = [WordStats(word=word) for word in words]
                 session.add_all(words_stats)
                 session.commit()
+                new_user.user_settings = user_settings
+                new_user.user_stats = user_stats
                 return new_user
         except sa.exc.IntegrityError:
             pass
@@ -90,10 +92,11 @@ class DBManager(metaclass=Singleton):
             cur_settings = session.get(UserSettings, user_id)
             return cur_settings
 
-    def update_user_settings(self, new_settings: UserSettings) -> None:
+    def update_user_settings(self, user: BotUser) -> bool | None:
         with self._session as session:
-            session.add(new_settings)
+            session.add(user)
             session.commit()
+            return True
 
     def find_word(self, user_id: int, words_title: str) -> Word | None:
         words_title = self.format_title(title=words_title)
@@ -139,23 +142,42 @@ class DBManager(metaclass=Singleton):
             other_words = session.execute(query).unique().scalars().all()
         return other_words
 
+    def update_users_stats(self, user: BotUser, words: list[Word]) -> bool:
+        if user and words:
+            try:
+                with self._session as session:
+                    session.add(user)
+                    session.add_all(words)
+                    session.commit()
+                return True
+            except Exception as error:
+                pass
+        return False
+
     def add_new_word(self, user: BotUser, rus_title, eng_title, category_name = CATEGORIES['COMMON']['name']) -> bool:
         try:
             rus_title = self.format_title(rus_title)
             eng_title = self.format_title(eng_title)
             category_name = self.format_title(category_name)
+            category_list = []
+            if category_name != CATEGORIES['COMMON']['name']:
+                base_category = self.get_category_by_name(user_id=user.id, name=CATEGORIES['COMMON']['name'])
+                category_list.append(base_category)
             category = self.get_category_by_name(user_id=user.id, name=category_name)
+            if not category:
+                category = Category(name=category_name)
+            category_list.append(category)
             new_word = Word(rus_title=rus_title, eng_title=eng_title, bot_user=user)
             with self._session as session:
-                if not category:
-                    category = Category(name=category_name)
-                    session.add(category)
+                session.add_all(category_list)
                 session.add(new_word)
                 session.flush()
                 new_word_stats = WordStats(word=new_word)
                 session.add(new_word_stats)
-                new_category_word = CategoryWord(word_details=new_word, category_details=category)
-                session.add(new_category_word)
+                category_word_list = []
+                for item in category_list:
+                    category_word_list.append(CategoryWord(word_details=new_word, category_details=item))
+                session.add_all(category_word_list)
                 session.commit()
             return True
         except sa.exc.IntegrityError:

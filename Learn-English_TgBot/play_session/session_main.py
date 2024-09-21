@@ -1,7 +1,5 @@
 from random import shuffle
-
 import requests
-
 from database.db_main import DBManager
 from models.bot_user import BotUser
 from models.word import Word
