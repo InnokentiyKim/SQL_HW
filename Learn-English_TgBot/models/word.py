@@ -14,10 +14,11 @@ class Word(Base):
     rus_title: Mapped[str] = mapped_column(index=True, nullable=False)
     eng_title: Mapped[str] = mapped_column(index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'))
+
     bot_user: Mapped['BotUser'] = relationship(back_populates='word')
-    word_stats: Mapped['WordStats'] = relationship(back_populates='word', uselist=False)
+    word_stats: Mapped['WordStats'] = relationship(back_populates='word', uselist=False, cascade='all, delete-orphan')
     category: Mapped[list['Category']] = relationship(secondary='category_word', back_populates='word')
-    words_category: Mapped[list['CategoryWord']] = relationship(back_populates='word_details')
+    words_category: Mapped[list['CategoryWord']] = relationship(back_populates='word_details', cascade='all, delete')
 
     __tableargs__ = (
         UniqueConstraint('rus_title', 'eng_title'),

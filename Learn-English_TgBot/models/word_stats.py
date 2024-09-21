@@ -17,8 +17,8 @@ class WordStats(Base):
 
     __tableargs__ = (
         UniqueConstraint('word_id'),
-    #     CheckConstraint('is_studied >= 0'),
-    #     CheckConstraint('number_of_attempts >= 0'),
-    #     CheckConstraint('successful_attempts >= 0'),
-    #     CheckConstraint('success_streak >= 0'),
+        CheckConstraint('is_studied >= 0'),
+        CheckConstraint('number_of_attempts >= 0'),
+        CheckConstraint('successful_attempts >= 0'),
+        CheckConstraint('success_streak >= 0'),
     )

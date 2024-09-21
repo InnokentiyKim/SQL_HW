@@ -1,6 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
+from sqlalchemy.testing.plugin.plugin_base import options
+
 from database.db_core import Session, Singleton, Base, engine
 from models.category_word import CategoryWord
 from models.user_settings import UserSettings
@@ -21,6 +23,8 @@ class DBManager(metaclass=Singleton):
 
     def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
+            # TODO: implement with session.get
+            # session.get(BotUser, user_id, options=[joinedload(BotUser.user_stats), joinedload(BotUser.user_settings)])
             query = (
                 sa.select(BotUser)
                 .filter(BotUser.id == user_id)
@@ -103,6 +107,7 @@ class DBManager(metaclass=Singleton):
             query = (
                 sa.select(Word).filter(Word.user_id == user_id)
                 .filter(or_(Word.rus_title.ilike(f"{words_title}"), Word.eng_title.ilike(f"{words_title}")))
+                .options(selectinload(Word.words_category))
             )
             found_word = session.execute(query).scalars().first()
         return found_word
@@ -121,7 +126,7 @@ class DBManager(metaclass=Singleton):
             .limit(amount)
         )
         with self._session as session:
-            target_words = session.execute(query).scalars().all()
+            target_words = session.execute(query).unique().scalars().all()
         return target_words
 
     def get_other_words(self, user_id: int, category: str = CATEGORIES['COMMON']['name'],
@@ -137,7 +142,7 @@ class DBManager(metaclass=Singleton):
             .limit(amount)
         )
         with self._session as session:
-            other_words = session.execute(query).scalars().all()
+            other_words = session.execute(query).unique().scalars().all()
         return other_words
 
     def add_new_word(self, user: BotUser, rus_title, eng_title, category_name = CATEGORIES['COMMON']['name']) -> bool:
@@ -166,16 +171,13 @@ class DBManager(metaclass=Singleton):
         return False
 
     def delete_word(self, user: BotUser, word: str) -> bool:
-        try:
-            with self._session as session:
-                deleting_word = self.find_word(user_id=user.id, words_title=word)
-                if deleting_word:
-                    session.delete(deleting_word)
-                    session.commit()
-                    return True
-            return False
-        except Exception as error:
-            return False
+        with self._session as session:
+            deleting_word = self.find_word(user_id=user.id, words_title=word)
+            if deleting_word:
+                session.delete(deleting_word)
+                session.commit()
+                return True
+        return False
 
     def delete_category(self, user: BotUser, category_name: str) -> bool:
         category = self.format_title(category_name)

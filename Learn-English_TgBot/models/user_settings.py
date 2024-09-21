@@ -11,3 +11,7 @@ class UserSettings(Base):
     notification: Mapped[int] = mapped_column(default=0)
     translation_mode: Mapped[TranslationMode] = mapped_column(default=TranslationMode.RUS_TO_ENG)
     bot_user: Mapped['BotUser'] = relationship(back_populates='user_settings')
+
+    __tableargs__ = (
+        CheckConstraint('notification >= 0'),
+    )
