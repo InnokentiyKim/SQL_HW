@@ -24,7 +24,7 @@ class Markup:
 
     def get_settings_keyboard(self, buttons_names: list[str]):
         settings_buttons = [self.keyboards.set_settings_button(button, data=button) for button in buttons_names]
-        markup = InlineKeyboardMarkup(row_width=2)
+        markup = InlineKeyboardMarkup(row_width=4)
         markup.row(*settings_buttons)
         return markup
 

@@ -1,7 +1,7 @@
 from telebot.types import Message, CallbackQuery
 from handlers.handler_functions import HandlerFunctions
 from models.bot_user import BotUser
-from settings.config import COMMANDS, KEYBOARD
+from settings.config import COMMANDS, KEYBOARD, settings
 from transitions import Machine
 
 
@@ -32,9 +32,6 @@ class HandlerMain(HandlerFunctions):
     def pressed_button_cards(self, message: Message):
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
 
-    # def pressed_button_menu(self, message: Message):
-    #     self.get_bots_menu(message)
-
     def pressed_button_settings(self, message: Message):
         self.get_user_settings(message)
 
@@ -52,6 +49,12 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_notification(self, call: CallbackQuery):
         self.change_notification_state(call)
+
+    def pressed_button_change_translation_mode(self, call: CallbackQuery):
+        self.change_translation_mode(call)
+
+    def pressed_button_change_words_chunk_size(self, message: Message):
+        self.change_words_chunk_size(message)
 
 
     def handle(self):
@@ -137,7 +140,15 @@ class HandlerMain(HandlerFunctions):
 
         @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['WORDS_CHUNK_SIZE'])
         def handle_change_words_chunk_size(call: CallbackQuery):
-            self.pressed_button_change_words_chunk_size(call)
+            self.bot.send_message(
+                chat_id=call.message.chat.id, text=f"Введите количество слов раунда "
+                                                   f"(число от {settings.MIN_WORDS_CHUNK_SIZE} "
+                                                   f"до {settings.OTHER_WORDS_CHUNK_SIZE}): "
+            )
+            self.bot.register_next_step_handler(call.message, get_words_chunk_size)
+
+        def get_words_chunk_size(message):
+            self.pressed_button_change_words_chunk_size(message)
 
 
         @self.bot.message_handler(func=lambda message: True)

@@ -10,7 +10,7 @@ class UserSettings(Base):
     id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'), primary_key=True)
     notification: Mapped[int] = mapped_column(default=0)
     translation_mode: Mapped[TranslationMode] = mapped_column(default=TranslationMode.RUS_TO_ENG)
-    words_chuck_size: Mapped[int] = mapped_column(default=settings.OTHER_WORDS_CHUNK_SIZE)
+    words_chunk_size: Mapped[int] = mapped_column(default=settings.TARGET_WORDS_CHUNK_SIZE)
     bot_user: Mapped['BotUser'] = relationship(back_populates='user_settings')
 
     __tableargs__ = (

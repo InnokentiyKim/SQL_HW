@@ -24,6 +24,7 @@ class Settings(AdvancedBaseSettings):
     WORDS_LIMIT: int = 10
     WORDS_IN_CARDS: int = 4
     IS_STUDIED_COND: int = 5
+    MIN_WORDS_CHUNK_SIZE: int = 1
     TARGET_WORDS_CHUNK_SIZE: int = 10
     OTHER_WORDS_CHUNK_SIZE: int = 5 * TARGET_WORDS_CHUNK_SIZE
     VERSION: str = '1.0.0'
@@ -53,7 +54,7 @@ KEYBOARD = {
     'COPY': emojize(":copyright:"),
     'NOTIFICATION': "Вкл/Выкл напоминания",
     'TRANSLATION_MODE': "Изменить режим перевода",
-    'WORDS_CHUCK_SIZE': "Изменить количество слов раунда",
+    'WORDS_CHUNK_SIZE': "Изменить количество слов раунда",
     'RUS': emojize("🇷🇺"),
     'ENG': emojize("🇺🇲"),
 }
@@ -67,7 +68,7 @@ NAVIGATION_KEYBOARD = [
 SETTINGS_KEYBOARD = [
     KEYBOARD['NOTIFICATION'],
     KEYBOARD['TRANSLATION_MODE'],
-    KEYBOARD['WORDS_CHUCK_SIZE'],
+    KEYBOARD['WORDS_CHUNK_SIZE'],
 ]
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]

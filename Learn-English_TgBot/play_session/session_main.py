@@ -12,9 +12,9 @@ class PlaySession(PlaySessionCore):
         super().__init__()
         self.DB = DBManager()
 
-    def init_session(self, bot_user: BotUser, words_category: str = CATEGORIES['COMMON']['name']) -> None:
+    def init_session(self, bot_user: BotUser, words_category: str, words_amount: int) -> None:
         self.user = bot_user
-        self.target_words = self.DB.get_target_words(self.user.id, category=words_category)
+        self.target_words = self.DB.get_target_words(self.user.id, category=words_category, amount=words_amount)
         self.other_words = self.DB.get_other_words(self.user.id, category=words_category)
         if self.target_words:
             self.refresh_session()
