@@ -84,8 +84,20 @@ class DBManager(metaclass=Singleton):
                 .options(selectinload(Category.word))
                 .filter(Word.user_id == user_id)
             )
-            categories = session.execute(query).scalars().all()
+            categories = session.execute(query).unique().scalars().all()
         return categories
+
+    def get_studying_words_count(self, user_id: int) -> int:
+        with self._session as session:
+            query = (
+                session.query(Word)
+                .join(WordStats, Word.id == WordStats.word_id)
+                .filter(Word.user_id == user_id)
+                .filter(WordStats.is_studied == 0)
+            )
+            query = query.with_entities(sa.func.count())
+            words_count = query.scalar()
+        return words_count
 
     def get_user_settings(self, user_id: int) -> UserSettings | None:
         with self._session as session:
@@ -216,3 +228,4 @@ class DBManager(metaclass=Singleton):
         except Exception as error:
             pass
         return False
+

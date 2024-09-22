@@ -16,5 +16,5 @@ class UserSettings(Base):
     __tableargs__ = (
         CheckConstraint('notification >= 0'),
         CheckConstraint('words_chuck_size > 0'),
-        CheckConstraint('words_chuck_size <= 50'),
+        CheckConstraint('words_chuck_size < 50'),
     )

@@ -47,6 +47,9 @@ class HandlerMain(HandlerFunctions):
     def pressed_button_next(self, message: Message):
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
 
+    def pressed_button_show_user_statistics(self, message: Message):
+        self.show_user_statistics(message)
+
     def pressed_button_notification(self, call: CallbackQuery):
         self.change_notification_state(call)
 
@@ -55,6 +58,9 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_change_words_chunk_size(self, message: Message):
         self.change_words_chunk_size(message)
+
+    def pressed_button_reset_settings(self, call: CallbackQuery):
+        self.reset_all_settings(call)
 
 
     def handle(self):
@@ -147,6 +153,10 @@ class HandlerMain(HandlerFunctions):
             )
             self.bot.register_next_step_handler(call.message, get_words_chunk_size)
 
+        @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['RESET_SETTINGS'])
+        def handle_reset_settings(call: CallbackQuery):
+            self.pressed_button_reset_settings(call)
+
         def get_words_chunk_size(message):
             self.pressed_button_change_words_chunk_size(message)
 
@@ -161,5 +171,7 @@ class HandlerMain(HandlerFunctions):
                 self.pressed_button_get_hint(message)
             elif message.text == KEYBOARD['BACK']:
                 self.pressed_button_back(message)
+            elif message.text == KEYBOARD['USER_STATISTICS']:
+                self.pressed_button_show_user_statistics(message)
             else:
                 self.check_answer(message, self.play_session.user.user_settings.translation_mode)

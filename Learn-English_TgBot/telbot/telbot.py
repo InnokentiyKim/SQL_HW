@@ -1,4 +1,3 @@
-from telebot.apihelper import set_my_commands
 from telebot.types import BotCommand
 from settings.config import settings, MENU_COMMANDS
 from telebot import TeleBot
@@ -16,8 +15,8 @@ class EnglishTelBot:
         self.handler = HandlerMain(self.bot)
 
     def set_bot_menu(self, commands: dict):
-        menu_commands = [BotCommand(command=key, description=value) for key, value in commands.items()]
-        set_my_commands(token=self.token, commands=menu_commands)
+        menu_commands = [BotCommand(key, value) for key, value in commands.items()]
+        self.bot.set_my_commands(commands=menu_commands)
 
 
     def start(self):

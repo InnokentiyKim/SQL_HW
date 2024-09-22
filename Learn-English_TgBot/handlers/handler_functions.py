@@ -1,7 +1,12 @@
 import re
 from datetime import datetime, UTC
+from random import shuffle
+
 from handlers.handler_core import Handler
 from telebot.types import Message
+
+from models.bot_user import BotUser
+from models.category import Category
 from models.user_settings import UserSettings
 from settings.config import KEYBOARD, TranslationMode, ALIASES, SETTINGS_KEYBOARD, NAVIGATION_KEYBOARD, settings, \
     CATEGORIES
@@ -50,6 +55,7 @@ class HandlerFunctions(Handler):
                 word_names = [word.rus_title for word in card.get('all')]
                 target_title = card.get('target').eng_title
                 words_message = f"{MESSAGES['NEXT_WORD']} {KEYBOARD['ENG']}"
+            shuffle(word_names)
             main_keyboard = self.markup.get_main_keyboard(word_names, NAVIGATION_KEYBOARD)
             self.markup.active_keyboard = main_keyboard
             self.bot.send_message(message.chat.id, f"{words_message} {target_title}", reply_markup=main_keyboard)
@@ -57,13 +63,13 @@ class HandlerFunctions(Handler):
             user = self.play_session.user
             if not user:
                 user = self.DB.identify_user(message.from_user.id)
-            round_stats_str = (f"Количество попыток: {self.play_session.round_attempts}\n"
-                               f"Правильных ответов': {self.play_session.round_successful_attempts}")
+            round_stats_str = (f"<i>Количество попыток: {self.play_session.round_attempts}</i>\n"
+                               f"<i>Правильных ответов: {self.play_session.round_successful_attempts}</i>")
             self.update_users_play_stats()
             self.play_session.init_session(bot_user=user, words_category=CATEGORIES['COMMON']['name'], words_amount=user.user_settings.words_chunk_size)
             self.bot.send_message(message.chat.id, f"Раунд закончен. Нажмите {KEYBOARD['NEXT_STEP']} чтобы начать новый")
-            self.bot.send_message(message.chat.id, f"Результаты раунда:\n{round_stats_str}",
-                                  reply_markup=self.markup.active_keyboard)
+            self.bot.send_message(message.chat.id, f"<b>Результаты раунда:</b>\n{round_stats_str}",
+                                  reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def change_notification_state(self, call):
         user_settings = self.play_session.user.user_settings
@@ -95,8 +101,17 @@ class HandlerFunctions(Handler):
         answer = f"Количество слов раунда изменено на {input_number}" if input_number else "Задано некорректное число слов. Настройки не изменены"
         self.bot.send_message(chat_id=message.chat.id, text=answer, reply_markup=self.markup.active_keyboard)
 
+    def reset_all_settings(self, call) -> None:
+        user_settings = self.play_session.user.user_settings
+        user_settings.words_chunk_size = settings.TARGET_WORDS_CHUNK_SIZE
+        user_settings.translation_mode = TranslationMode.RUS_TO_ENG
+        user_settings.notification = 0
+        answer = f"Не удалось сбросить настройки"
+        if self.DB.update_user_settings(self.play_session.user):
+            answer = f"Все настройки сброшены"
+        self.bot.send_message(call.message.chat.id, answer, parse_mode='html')
+
     def get_hint(self, message, word: str = None) -> None:
-        # TODO: implement in-memory cached hints
         word = self.play_session.current_target_word.eng_title if not word else word.lower().strip()
         hint = self.play_session.get_words_description(word)
         if hint:
@@ -133,7 +148,7 @@ class HandlerFunctions(Handler):
 
     @staticmethod
     def _suit_user_settings(input_settings: UserSettings) -> str:
-        formatted_settings = {}
+        formatted_settings = {'Количество слов в раунде': input_settings.words_chunk_size}
         if input_settings.translation_mode == TranslationMode.RUS_TO_ENG:
             formatted_settings['Режим перевода'] = 'С русского на английский'
         elif input_settings.translation_mode == TranslationMode.ENG_TO_RUS:
@@ -163,6 +178,27 @@ class HandlerFunctions(Handler):
     def get_step_back(self, message):
         main_keyboard = self.markup.active_keyboard
         self.bot.send_message(message.chat.id, f"Вы вернулись назад", reply_markup=main_keyboard, parse_mode='html')
+
+    @staticmethod
+    def _suit_user_stats(user: BotUser, categories: list[str], words_in_study: int) -> str:
+        user_stats_str = "<b>Статистика пользователя</b>\n"
+        category_stats_str = "<b>Список категорий слов:</b>\n"
+        user_stats = user.user_stats
+        rating = user_stats.successful_attempts / user_stats.number_of_attempts * 100
+        stats = {'Всего попыток': f'{user_stats.number_of_attempts}', 'Успешных попыток': f'{user_stats.successful_attempts}',
+                 'Рейтинг': f'{rating}%', 'Слов в изучении': f'{words_in_study}'}
+        user_stats_str = user_stats_str + "\n".join([f"<b>{key}</b>: <i>{value}</i>" for key, value in stats.items()])
+        category_stats_str = category_stats_str + "\t".join([f"<i>{category}</i>" for category in categories])
+        suited_str = user_stats_str + "\n" + category_stats_str
+        return suited_str
+
+    def show_user_statistics(self, message):
+        user = self.play_session.user
+        category_objects = self.DB.get_all_users_categories(user.id)
+        categories_list = [category.name for category in category_objects]
+        words_in_study = self.DB.get_studying_words_count(user.id)
+        answer_str = self._suit_user_stats(user, categories_list, words_in_study)
+        self.bot.send_message(message.chat.id, answer_str, reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def check_answer(self, message: Message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
         target_word = self.play_session.current_target_word
@@ -205,7 +241,7 @@ class HandlerFunctions(Handler):
     @staticmethod
     def validate_input_number(number: str, min_value: int, max_value: int) -> int:
         if isinstance(number, str):
-            if number.isdigit() and min_value <= int(number) <= max_value:
+            if number.isdigit() and min_value <= int(number) < max_value:
                 return int(number)
             return 0
 

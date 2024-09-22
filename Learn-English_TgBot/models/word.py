@@ -24,5 +24,5 @@ class Word(Base):
         UniqueConstraint(rus_title, eng_title),
     )
 
-    def __str__(self):
-        return f"{self.rus_title} {self.eng_title}"
+    # def __str__(self):
+    #     return f"{self.rus_title} {self.eng_title}"

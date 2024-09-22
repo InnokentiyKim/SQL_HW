@@ -50,18 +50,21 @@ KEYBOARD = {
     'NEXT_STEP': emojize("➡ Дальше"),
     'ADD_WORD': emojize("➕ Добавить слово"),
     'DELETE_WORD': emojize("❌ Удалить слово"),
+    'USER_STATISTICS': emojize("📊 Статистика"),
     'BACK': emojize("🔙 Назад"),
     'COPY': emojize(":copyright:"),
     'NOTIFICATION': "Вкл/Выкл напоминания",
     'TRANSLATION_MODE': "Изменить режим перевода",
     'WORDS_CHUNK_SIZE': "Изменить количество слов раунда",
+    'RESET_SETTINGS': "Сброс настроек",
     'RUS': emojize("🇷🇺"),
     'ENG': emojize("🇺🇲"),
 }
 
 NAVIGATION_KEYBOARD = [
-    KEYBOARD['HINT'],
     KEYBOARD['SETTINGS'],
+    KEYBOARD['USER_STATISTICS'],
+    KEYBOARD['HINT'],
     KEYBOARD['NEXT_STEP'],
 ]
 
@@ -69,6 +72,7 @@ SETTINGS_KEYBOARD = [
     KEYBOARD['NOTIFICATION'],
     KEYBOARD['TRANSLATION_MODE'],
     KEYBOARD['WORDS_CHUNK_SIZE'],
+    KEYBOARD['RESET_SETTINGS'],
 ]
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]
@@ -96,11 +100,11 @@ COMMANDS = {
 }
 
 MENU_COMMANDS = {
-    'start': 'Начать',
-    'help': 'Помощь',
-    'add_word': 'Добавить слово',
-    'delete_word': 'Удалить слово',
-    'info': 'О боте'
+    "/start": "Начать",
+    "/help": "Помощь",
+    "/add_word": "Добавить слово",
+    "/delete_word": "Удалить слово",
+    "/info": "О боте"
 }
 
 
