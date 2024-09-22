@@ -1,3 +1,4 @@
+import re
 from handlers.handler_core import Handler
 from telebot.types import Message
 from models.user_settings import UserSettings
@@ -164,10 +165,15 @@ class HandlerFunctions(Handler):
                                   reply_markup=self.markup.active_keyboard)
 
     @staticmethod
-    def validate_input_word(word: str) -> bool:
+    def validate_input_word(word: str, language: str = 'all') -> bool:
         # TODO: add validation using regex
+        word_pattern = r'^[a-zA-Zа-яА-ЯёЁ-]+'
+        if language == 'eng':
+            word_pattern = r'^[a-zA-Z-]+'
+        elif language == 'rus':
+            word_pattern = r'^[а-яА-ЯёЁ-]+'
         if isinstance(word, str):
-            if word.strip() and '.,!?-;' not in word:
+            if re.fullmatch(word_pattern, word):
                 return True
         return False
 

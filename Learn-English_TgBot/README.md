@@ -1,5 +1,5 @@
 
-[<img src="./images/learn_english_bot.jpg" width="180" height="180">]()
+[<img src="./images/learn_english_bot.png" width="180" height="180">]()
 
 
 # Learn English - телеграм-бот для изучения английского языка по карточкам
@@ -15,8 +15,7 @@
 > - изменить настройки бота
 #### Технологии и инструменты
 > - База данных PostgreSQL
-> - telebot API
-> - dictionary API
+> - Telebot API
 
 <hr>
 

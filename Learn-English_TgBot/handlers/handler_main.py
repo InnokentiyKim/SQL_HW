@@ -78,24 +78,26 @@ class HandlerMain(HandlerFunctions):
 
         def get_rus_word(message):
             rus_word = message.text
-            is_valid_word = self.validate_input_word(rus_word)
+            is_valid_word = self.validate_input_word(rus_word, language='rus')
             if is_valid_word:
                 self.new_users_word['rus_title'] = rus_word
                 self.bot.register_next_step_handler(message, get_eng_word)
                 self.bot.send_message(message.chat.id, "Введите слово на английском: ")
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. Введите слово на русском: ")
+                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.register_next_step_handler(message, get_rus_word)
 
         def get_eng_word(message):
             eng_word = message.text
-            is_valid_word = self.validate_input_word(eng_word)
+            is_valid_word = self.validate_input_word(eng_word, language='eng')
             if is_valid_word:
                 self.new_users_word['eng_title'] = eng_word
                 self.bot.register_next_step_handler(message, get_category)
                 self.bot.send_message(message.chat.id, "Введите категорию (<i>all</i> или <i>все</i> - <i>Общая</i> категория): ",
                                       parse_mode='html')
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. Введите слово на английском: ")
+                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.register_next_step_handler(message, get_eng_word)
 
         def get_category(message):
             category_name = message.text
@@ -107,8 +109,8 @@ class HandlerMain(HandlerFunctions):
                     eng_title=self.new_users_word['eng_title'], category_name=self.new_users_word['category_name']
                 )
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат категории. Введите категорию "
-                                                       "(<i>all</i> или <i>все</i> - <i>Общая</i> категория): ", parse_mode='html')
+                self.bot.send_message(message.chat.id, "Неверный формат категории. Попробуйте снова")
+                self.bot.register_next_step_handler(message, get_category)
 
         @self.bot.message_handler(commands=COMMANDS['DELETE_WORD'])
         def handle_delete_word(message):
@@ -121,12 +123,21 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.delete_word(message, deleting_word)
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. "
-                                                       "Введите слово на русском или на английском: ")
+                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.register_next_step_handler(message, get_deleting_word)
+
 
         @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['NOTIFICATION'])
         def handle_notification_pressed(call: CallbackQuery):
             self.pressed_button_notification(call)
+
+        @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['TRANSLATION_MODE'])
+        def handle_change_translation_mode(call: CallbackQuery):
+            self.pressed_button_change_translation_mode(call)
+
+        @self.bot.callback_query_handler(func=lambda call: call.data == KEYBOARD['WORDS_CHUNK_SIZE'])
+        def handle_change_words_chunk_size(call: CallbackQuery):
+            self.pressed_button_change_words_chunk_size(call)
 
 
         @self.bot.message_handler(func=lambda message: True)
