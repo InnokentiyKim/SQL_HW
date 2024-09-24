@@ -1,5 +1,5 @@
 
-[<img src="./images/learn_english_bot.png" width="180" height="180">]()
+[<img src="./images/LearnEngBot.jpg" width="180" height="180">]()
 
 
 # Learn English - телеграм-бот для изучения английского языка по карточкам
@@ -17,8 +17,8 @@
 > - База данных PostgreSQL
 > - pyTelegramBot API
 
-[<img src="./images/postgresql.png" width="220" height="100">]()
-[<img src="./images/pytelebot.png" width="90" height="90">]()
+[<img src="./images/postgres.jpg" width="160" height="100">]()
+[<img src="./images/telebot.jpg" width="90" height="90">]()
 
 <hr>
 
@@ -145,7 +145,7 @@ _Алгоритм работы бота следующий:_
 * сохраняется список стандартных слов.
 * ER-диаграмма сущностей представлена на схеме ниже.  
 
-[<img src="./images/EngCards_Schema.png">]()
+[<img src="./images/EngCards_Schema.jpg">]()
 
 
 <a name="add_words"></a>
