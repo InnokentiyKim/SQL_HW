@@ -4,6 +4,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class UserStats(Base):
+    """
+    Модель статистики пользователя.
+    Атрибуты:
+        id: Идентификатор статистики пользователя
+        number_of_attempts: Количество попыток
+        successful_attempts: Количество успешных попыток
+        success_streak: Успешный стрик (количество успешных попыток подряд)
+        bot_user: relationship - Пользователь бота
+    """
     __tablename__ = 'user_stats'
 
     id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'), primary_key=True)

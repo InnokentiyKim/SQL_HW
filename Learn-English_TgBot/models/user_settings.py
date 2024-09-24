@@ -5,6 +5,15 @@ from settings.config import TranslationMode, settings
 
 
 class UserSettings(Base):
+    """
+    Модель настроек пользователя.
+    Атрибуты:
+        id: Идентификатор настроек пользователя
+        notification: Уведомления
+        translation_mode: Режим перевода
+        words_chunk_size: Размер блока слов
+        bot_user: relationship - Пользователь бота
+    """
     __tablename__ = 'user_settings'
 
     id: Mapped[int] = mapped_column(ForeignKey('bot_user.id', ondelete='CASCADE'), primary_key=True)

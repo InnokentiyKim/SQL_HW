@@ -5,6 +5,17 @@ from typing import Optional
 
 
 class WordStats(Base):
+    """
+    Модель статистики слова.
+    Атрибуты:
+        id: Идентификатор статистики слова
+        word_id: Идентификатор слова
+        is_studied: Изучено ли слово
+        number_of_attempts: Количество попыток
+        successful_attempts: Количество успешных попыток
+        success_streak: Успешный стрик (количество успешных попыток подряд)
+        word: relationship - Слово
+    """
     __tablename__ = 'word_stats'
 
     id: Mapped[int] = mapped_column(primary_key=True)

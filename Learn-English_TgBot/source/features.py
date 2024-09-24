@@ -2,6 +2,9 @@ from functools import wraps
 
 
 def cached(func):
+    """
+    Декоратор для хранения результатов функции в кэше.
+    """
     cache = {}
 
     @wraps(func)

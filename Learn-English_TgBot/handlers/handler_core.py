@@ -5,6 +5,14 @@ from database.db_main import DBManager
 
 
 class Handler(metaclass=abc.ABCMeta):
+    """
+    Абстрактный класс обработчика.
+    Описывает общие методы обработчиков.
+    Атрибуты:
+        bot: Объект бота.
+        markup: Объект маркировки (клавиатуры).
+        DB: Объект менеджера базы данных.
+    """
 
     def __init__(self, bot):
         self.bot = bot

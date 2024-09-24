@@ -5,6 +5,9 @@ from pydantic.v1 import BaseSettings, Field
 
 
 class AdvancedBaseSettings(BaseSettings):
+    """
+    Базовый класс с настройками
+    """
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
@@ -12,6 +15,9 @@ class AdvancedBaseSettings(BaseSettings):
 
 
 class Settings(AdvancedBaseSettings):
+    """
+    Основной класс с настройками и переменными окружения.
+    """
     TOKEN: str = Field(env='TOKEN')
     DB_NAME: str = Field(env='DB_NAME', default='postgres')
     DIALECT: str = Field(env='DIALECT', default='postgresql')
@@ -32,6 +38,7 @@ class Settings(AdvancedBaseSettings):
     BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
     PIC_DIR: str = BASE_DIR + 'images/learn_english_bot.png'
     DATA_PATH: str = 'source/data/default_words.json'
+    DELAY_SEC: int = 5
 
     @property
     def DSN(self):
@@ -40,7 +47,9 @@ class Settings(AdvancedBaseSettings):
 
 settings = Settings()
 
-
+"""
+Кнопки клавиатуры
+"""
 KEYBOARD = {
     'INFO': emojize("💬 INFO о боте"),
     'HINT': emojize("📖 Подсказка"),
@@ -60,6 +69,9 @@ KEYBOARD = {
     'ENG': emojize("🇺🇲"),
 }
 
+"""
+Клавиатура навигации
+"""
 NAVIGATION_KEYBOARD = [
     KEYBOARD['SETTINGS'],
     KEYBOARD['USER_STATISTICS'],
@@ -67,6 +79,9 @@ NAVIGATION_KEYBOARD = [
     KEYBOARD['NEXT_STEP'],
 ]
 
+"""
+Клавиатура настроек
+"""
 SETTINGS_KEYBOARD = [
     KEYBOARD['NOTIFICATION'],
     KEYBOARD['TRANSLATION_MODE'],
@@ -76,18 +91,20 @@ SETTINGS_KEYBOARD = [
 
 KEYBOARD_NAMES = [name for name in KEYBOARD.keys()]
 
+"""
+Алиасы для категорий слов
+"""
 ALIASES = {
     'BASIC': ['all', 'все'],
 }
 
 CATEGORIES = {
     'COMMON': {'value': 1, 'name': 'Общие'},
-    'TRANSPORT': {'value': 2, 'name': 'Транспорт'},
-    'ANIMALS': {'value': 3, 'name': 'Животные'},
-    'CLOTHES': {'value': 4, 'name': 'Одежда'},
-    'COLORS': {'value': 5, 'name': 'Цвета'}
 }
 
+"""
+Команды бота
+"""
 COMMANDS = {
     'START': 'start',
     'HELP': 'help',
@@ -97,6 +114,9 @@ COMMANDS = {
     'INFO': 'info',
 }
 
+"""
+Команды меню
+"""
 MENU_COMMANDS = {
     "/start": "Начать",
     "/help": "Помощь",
@@ -105,15 +125,9 @@ MENU_COMMANDS = {
     "/info": "О боте",
 }
 
-
+"""
+Режимы перевода
+"""
 class TranslationMode(Enum):
     RUS_TO_ENG = 1
     ENG_TO_RUS = 2
-
-
-class UserStates(Enum):
-    START = 1
-    PLAYING = 2
-    ADDING_DATA = 3
-    DELETING_DATA = 4
-    CONFIGURING = 5

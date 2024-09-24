@@ -4,7 +4,12 @@ from settings.config import settings
 
 
 class Base(DeclarativeBase):
+    """
+        Базовый класс для всех таблиц в базе данных.
+        Реализует метод `__repr__` для вывода информации о классе и его атрибутах.
+        """
     def __repr__(self):
+
         cols = []
         for col in self.__table__.columns.keys():
             cols.append(f"{col} = {getattr(self, col)}")
@@ -16,6 +21,14 @@ Session = sessionmaker(bind=engine, autocommit=False, expire_on_commit=False)
 
 
 class Singleton(type):
+    """
+    Метакласс, реализующий паттерн Singleton.
+    Гарантирует, что класс, использующий этот метакласс, будет иметь только один экземпляр.
+    Атрибуты:
+        _instance: Хранит единственный экземпляр класса.
+    Методы:
+        __call__: Переопределенный метод, возвращающий единственный экземпляр класса.
+    """
     def __init__(cls, name, bases, attrs, **kwargs):
         super().__init__(name, bases, attrs)
         cls.__instance = None

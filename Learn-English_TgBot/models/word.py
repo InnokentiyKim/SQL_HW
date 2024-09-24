@@ -8,6 +8,17 @@ from models.word_stats import WordStats
 
 
 class Word(Base):
+    """
+    Модель слова.
+    Атрибуты:
+        id: Идентификатор слова
+        rus_title: Русское название слова
+        eng_title: Английское название слова
+        user_id: Идентификатор пользователя
+        bot_user: relationship - Пользователь бота
+        word_stats: relationship - Статистика слова
+        category: relationship - Категории слова
+    """
     __tablename__ = 'word'
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -6,6 +6,13 @@ from settings.config import CATEGORIES
 
 
 class Category(Base):
+    """
+    Модель категории.
+    Атрибуты:
+        id: Идентификатор категории
+        name: Название категории
+        word: relationship - Слова категории
+    """
     __tablename__ = 'category'
 
     id: Mapped[int] = mapped_column(primary_key=True)

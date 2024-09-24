@@ -7,6 +7,17 @@ from models.user_stats import UserStats
 
 
 class BotUser(Base):
+    """
+    Модель пользователя бота.
+    Атрибуты:
+        id: Идентификатор пользователя
+        name: Имя пользователя
+        created_at: Дата создания пользователя
+        last_seen_at: Дата последнего посещения пользователя
+        user_stats: relationship - Статистика пользователя
+        user_settings: relationship - Настройки пользователя
+        word: relationship - Слова пользователя
+    """
     __tablename__ = 'bot_user'
 
     id: Mapped[int] = mapped_column(primary_key=True)

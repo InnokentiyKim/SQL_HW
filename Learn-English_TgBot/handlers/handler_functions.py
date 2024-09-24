@@ -1,8 +1,8 @@
 import re
 from datetime import datetime, UTC
 from random import shuffle
-from xml.sax import parse
 
+from bot_logging.bot_logging import LOGGER_PATH, error_logging
 from handlers.handler_core import Handler
 from telebot.types import Message
 from models.bot_user import BotUser
@@ -14,15 +14,56 @@ from play_session.session_main import PlaySession
 
 
 class HandlerFunctions(Handler):
+    """
+    Класс функций обработчика. Предоставляет методы для обработчика событий.
+    Расширяет класс Handler и предоставляет методы для обработки различных функций.
+    Обеспечивает взаимодействие с базой данных и другими компонентами системы.
+    Атрибуты:
+        play_session: Объект сессии игры
+        new_users_word: Слово для нового пользователя
+    Методы:
+        get_help - Отправляет сообщение для помощи пользователю
+        start_actions - Инициализирует сессию игры и выполняет начальные действия
+        update_users_play_stats - Обновляет в базе данных статистику пользователя
+        get_next_card - Получает следующую карточку со словами
+        change_notification_state - Изменяет состояние уведомлений
+        change_translation_mode - Изменяет режим перевода
+        change_words_chunk_size - Изменяет размер блока слов раунда игры
+        reset_all_settings - Сбрасывает все настройки пользователя до стандартных значений
+        get_hint - Отправляет пользователю подсказку
+        add_new_word - Добавляет новое слово в базу данных
+        delete_word - Удаляет слово из базы данных
+        get_user_settings - Отправляет пользователю его текущие настройки
+        get_info - Отправляет пользователю информацию о боте
+        show_user_statistics - Отправляет пользователю его статистику
+        check_answer - Проверяет правильность ответа пользователя
+        validate_input_word - Валидирует введенное пользователем слово
+        validate_input_number - Валидирует введенное пользователем число
+    """
     def __init__(self, bot):
         super().__init__(bot)
         self.play_session = PlaySession()
         self.new_users_word = {}
 
     def get_help(self, message):
+        """
+        Возвращает справку по командам.
+        Обрабатывает команду /help и возвращает список доступных команд с их описанием.
+        Параметры:
+            message: Объект сообщения от пользователя.
+            """
         self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['HELP']}", parse_mode='html')
 
     def start_actions(self, message):
+        """
+        Выполняет начальные действия при запуске бота, включая добавление нового пользователя и инициализацию сессии.
+        Обрабатывает команду /start и выполняет необходимые действия при запуске бота,
+        такие как приветствие пользователя и отправка клавиатуры управления.
+        Параметры:
+            message: Объект сообщения от пользователя.
+        Возвращает:
+            None
+        """
         user_id = int(message.from_user.id)
         user_name = message.from_user.first_name
         user = self.DB.identify_user(user_id)
@@ -37,11 +78,29 @@ class HandlerFunctions(Handler):
         self.bot.send_message(message.chat.id, f"{MESSAGES['LETS_START']}", parse_mode='html')
 
     def update_users_play_stats(self) -> bool:
+        """
+       Обновляет статистику игровой активности пользователя в базе данных.
+       Также обновляет статистику слов пользователя в базе данных.
+       Возвращает:
+           bool - True, если обновление прошло успешно, иначе False
+       """
         self.play_session.user.last_seen_at = datetime.now(tz=UTC)
         updating_status = self.DB.update_users_stats(self.play_session.user, self.play_session.target_words)
         return updating_status
 
+    @error_logging(LOGGER_PATH)
     def get_next_card(self, message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
+        """
+        Возвращает следующую карточку слов для пользователя.
+        Выбирает следующую карточку для пользователя в зависимости от режима перевода из указанной категории.
+        Если карточки в текущей сессии закончились, то выводит результаты раунда, обновляет статистику пользователя
+        в базе данных и инициализирует новую сессию.
+        Параметры:
+            message: Объект сообщения от пользователя.
+            play_mode (TranslationMode): Режим перевода.
+        Возвращает:
+            None
+        """
         card = self.play_session.get_words_for_card()
         if card:
             word_names = []
@@ -72,6 +131,13 @@ class HandlerFunctions(Handler):
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def change_notification_state(self, call):
+        """
+        Изменяет состояние уведомлений для пользователя (включено/выключено).
+        Параметры:
+            call: Объект CallbackQuery от пользователя.
+        Возвращает:
+            None
+        """
         user_settings = self.play_session.user.user_settings
         if user_settings.notification == 0:
             user_settings.notification = 1
@@ -82,6 +148,13 @@ class HandlerFunctions(Handler):
         self.bot.send_message(chat_id=call.message.chat.id, text=answer)
 
     def change_translation_mode(self, call):
+        """
+        Изменяет режим перевода для пользователя ("en-ru"/"ru-en").
+        Параметры:
+            call: Объект CallbackQuery от пользователя.
+        Возвращает:
+            None
+        """
         user_settings = self.play_session.user.user_settings
         if user_settings.translation_mode == TranslationMode.ENG_TO_RUS:
             user_settings.translation_mode = TranslationMode.RUS_TO_ENG
@@ -93,6 +166,14 @@ class HandlerFunctions(Handler):
         self.bot.send_message(chat_id=call.message.chat.id, text=answer)
 
     def change_words_chunk_size(self, message):
+        """
+        Изменяет количество слов в раунде для пользователя.
+        Также выполняет валидацию введенного пользователем числа.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+        Возвращает:
+            None
+        """
         user_settings = self.play_session.user.user_settings
         input_number = self.validate_input_number(message.text, settings.MIN_WORDS_CHUNK_SIZE, settings.OTHER_WORDS_CHUNK_SIZE)
         if input_number:
@@ -102,6 +183,13 @@ class HandlerFunctions(Handler):
         self.bot.send_message(chat_id=message.chat.id, text=answer, reply_markup=self.markup.active_keyboard)
 
     def reset_all_settings(self, call) -> None:
+        """
+        Сбрасывает все настройки пользователя до значений по умолчанию.
+        Параметры:
+            call (CallbackQuery): Объект CallbackQuery от пользователя.
+        Возвращает:
+            None
+        """
         user_settings = self.play_session.user.user_settings
         user_settings.words_chunk_size = settings.TARGET_WORDS_CHUNK_SIZE
         user_settings.translation_mode = TranslationMode.RUS_TO_ENG
@@ -112,6 +200,15 @@ class HandlerFunctions(Handler):
         self.bot.send_message(call.message.chat.id, answer, parse_mode='html')
 
     def get_hint(self, message, word: str = None) -> None:
+        """
+        Отправляет пользователю подсказку для загаданного слова.
+        Использует внешний API для получения подсказки.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+            word (str): Загаданное слово.
+        Возвращает:
+            None
+        """
         word = self.play_session.current_target_word.eng_title if not word else word.lower().strip()
         hint = self.play_session.get_words_description(word)
         if hint:
@@ -120,6 +217,18 @@ class HandlerFunctions(Handler):
             self.bot.send_message(message.chat.id, MESSAGES['NO_HINT'], parse_mode='html')
 
     def add_new_word(self, message, rus_title: str, eng_title: str, category_name: str):
+        """
+        Добавляет новое слово пользователя в базу данных в указанную категорию.
+        Новое слово в любом случае добавляется в категорию "Общие".
+        Отправляет пользователю сообщение об успешном или неуспешном добавлении.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+            rus_title (str): Русское название слова.
+            eng_title (str): Английское название слова.
+            category_name (str): Название категории.
+        Возвращает:
+            None
+        """
         user = self.play_session.user
         category_name = category_name.lower().strip()
         if category_name in ALIASES.get('BASIC'):
@@ -137,6 +246,16 @@ class HandlerFunctions(Handler):
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def delete_word(self, message, word: str):
+        """
+        Удаляет слово из базы данных по названию (английскому или русскому).
+        Удаляет слово и все связанные с ним данные.
+        Отправляет пользователю сообщение об успешном или неуспешном удалении.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+            word (str): Название слова.
+        Возвращает:
+            None
+        """
         user = self.play_session.user
         word_deleted = self.DB.delete_word(user=user, word=word)
         if word_deleted:
@@ -163,6 +282,14 @@ class HandlerFunctions(Handler):
         return res_string
 
     def get_user_settings(self, message):
+        """
+        Возвращает настройки пользователя.
+        Отправляет пользователю сообщение с текущими настройками.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+        Возвращает:
+            None
+        """
         user_settings = self.play_session.user.user_settings
         if user_settings:
             answer_str = self._suit_user_settings(user_settings)
@@ -172,7 +299,15 @@ class HandlerFunctions(Handler):
         self.bot.send_message(message.chat.id, answer_str,
                               reply_markup=settings_keyboard, parse_mode='html')
 
+    @error_logging(LOGGER_PATH)
     def get_info(self, message):
+        """
+        Отправляет пользователю информацию о боте.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+        Возвращает:
+            None
+        """
         main_keyboard = self.markup.active_keyboard
         self.bot.send_message(message.chat.id, MESSAGES['INFO'], reply_markup=main_keyboard, parse_mode='html')
 
@@ -190,6 +325,14 @@ class HandlerFunctions(Handler):
         return suited_str
 
     def show_user_statistics(self, message):
+        """
+        Получает статистику пользователя, включая категории, количество изучаемых слов, правильных ответов и т.д.
+        Отправляет пользователю статистику.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+        Возвращает:
+            None
+        """
         user = self.play_session.user
         category_objects = self.DB.get_all_users_categories(user.id)
         categories_list = [category.name for category in category_objects]
@@ -197,7 +340,17 @@ class HandlerFunctions(Handler):
         answer_str = self._suit_user_stats(user, categories_list, words_in_study)
         self.bot.send_message(message.chat.id, answer_str, reply_markup=self.markup.active_keyboard, parse_mode='html')
 
+    @error_logging(LOGGER_PATH)
     def check_answer(self, message: Message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
+        """
+        Проверяет ответ пользователя на загаданное слово с учетом текущего режима перевода.
+        Отправляет пользователю результат проверки.
+        Параметры:
+            message (Message): Объект сообщения от пользователя.
+            play_mode (TranslationMode): Режим перевода.
+        Возвращает:
+            None
+        """
         target_word = self.play_session.current_target_word
         question = target_word.eng_title
         answer = str(message.text).capitalize().strip()
@@ -225,7 +378,16 @@ class HandlerFunctions(Handler):
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     @staticmethod
+    @error_logging(LOGGER_PATH)
     def validate_input_word(word: str, language: str = 'all') -> bool:
+        """
+        Проводит валидацию слов на основе регулярных выражений с учетом языка.
+        Параметры:
+            word (str): Слово для валидации.
+            language (str): Язык проверки.
+        Возвращает:
+            bool: True, если слово корректно, False в противном случае.
+        """
         word_pattern = r'^[a-zA-Zа-яА-ЯёЁ-]+'
         if language == 'eng':
             word_pattern = r'^[a-zA-Z-]+'
@@ -237,7 +399,17 @@ class HandlerFunctions(Handler):
         return False
 
     @staticmethod
+    @error_logging(LOGGER_PATH)
     def validate_input_number(number: str, min_value: int, max_value: int) -> int:
+        """
+        Проводит валидацию введенного пользователем числа на основе регулярных выражений.
+        Параметры:
+            number (str): Число для валидации.
+            min_value (int): Минимальное значение.
+            max_value (int): Максимальное значение.
+        Возвращает:
+            int: Число, если оно корректно, 0 в противном случае.
+        """
         if isinstance(number, str):
             if number.isdigit() and min_value <= int(number) < max_value:
                 return int(number)
