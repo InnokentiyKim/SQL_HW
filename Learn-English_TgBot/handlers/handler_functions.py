@@ -1,12 +1,9 @@
 import re
 from datetime import datetime, UTC
 from random import shuffle
-
 from handlers.handler_core import Handler
 from telebot.types import Message
-
 from models.bot_user import BotUser
-from models.category import Category
 from models.user_settings import UserSettings
 from settings.config import KEYBOARD, TranslationMode, ALIASES, SETTINGS_KEYBOARD, NAVIGATION_KEYBOARD, settings, \
     CATEGORIES
@@ -143,7 +140,7 @@ class HandlerFunctions(Handler):
             self.bot.send_message(message.chat.id, f"Слово <b><i>{word}</i></b> удалено",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"Слово <b><i>{word}</i></b не найдено",
+            self.bot.send_message(message.chat.id, f"Слово <b><i>{word}</i></b> не найдено",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     @staticmethod
@@ -184,9 +181,9 @@ class HandlerFunctions(Handler):
         user_stats_str = "<b>Статистика пользователя</b>\n"
         category_stats_str = "<b>Список категорий слов:</b>\n"
         user_stats = user.user_stats
-        rating = user_stats.successful_attempts / user_stats.number_of_attempts * 100
+        rating = user_stats.successful_attempts / user_stats.number_of_attempts * 100 if user_stats.number_of_attempts > 0 else 0
         stats = {'Всего попыток': f'{user_stats.number_of_attempts}', 'Успешных попыток': f'{user_stats.successful_attempts}',
-                 'Рейтинг': f'{rating}%', 'Слов в изучении': f'{words_in_study}'}
+                 'Рейтинг': f'{rating:.1f}%', 'Слов в изучении': f'{words_in_study}'}
         user_stats_str = user_stats_str + "\n".join([f"<b>{key}</b>: <i>{value}</i>" for key, value in stats.items()])
         category_stats_str = category_stats_str + "\t".join([f"<i>{category}</i>" for category in categories])
         suited_str = user_stats_str + "\n" + category_stats_str

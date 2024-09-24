@@ -13,6 +13,7 @@ class BotUser(Base):
     name: Mapped[Optional[str]] = mapped_column(default=f'User {id}')
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(tz=UTC), nullable=False)
     last_seen_at: Mapped[datetime] = mapped_column(default=datetime.now(tz=UTC), nullable=False)
+
     user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user', uselist=False)
     user_settings: Mapped['UserSettings'] = relationship(back_populates='bot_user', uselist=False)
     word: Mapped[list['Word']] = relationship(back_populates='bot_user')

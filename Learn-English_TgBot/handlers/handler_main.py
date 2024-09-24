@@ -1,35 +1,27 @@
 from telebot.types import Message, CallbackQuery
 from handlers.handler_functions import HandlerFunctions
-from models.bot_user import BotUser
 from settings.config import COMMANDS, KEYBOARD, settings
-from transitions import Machine
-
-
-class WordCardsBot:
-    states = ['start', 'playing', 'adding_data', 'deleting_data']
-    transitions = [
-        {'trigger': 'start', 'source': 'start', 'dest': 'playing'},
-        {'trigger': 'playing', 'source': 'playing', 'dest': 'adding_data'},
-        {'trigger': 'adding_data', 'source': 'adding_data', 'dest': 'playing'},
-        {'trigger': 'deleting_data', 'source': 'deleting_data', 'dest': 'playing'},
-    ]
-
-    def __init__(self):
-        self.machine = Machine(model=self, states=WordCardsBot.states, transitions=WordCardsBot.transitions, initial='start')
+from handlers.bot_states import BotStates
 
 
 class HandlerMain(HandlerFunctions):
     def __init__(self, bot):
         super().__init__(bot)
-        self.users = {}
+        self.user_states = {}
 
     def pressed_button_help(self, message: Message):
         self.get_help(message)
+        # if self.bot.get_state(message.from_user.id, message.chat.id) == BotStates.start:
+        #     self.bot.set_state(message.from_user.id, BotStates.start, message.chat.id)
 
     def pressed_button_start(self, message: Message):
         self.start_actions(message)
+        self.user_states[message.chat.id] = BotStates.start
 
     def pressed_button_cards(self, message: Message):
+        if message.chat.id not in self.user_states:
+            self.pressed_button_start(message)
+        self.user_states[message.chat.id] = BotStates.play
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
 
     def pressed_button_settings(self, message: Message):
@@ -64,7 +56,7 @@ class HandlerMain(HandlerFunctions):
 
 
     def handle(self):
-        @self.bot.message_handler(commands=COMMANDS['HELP'])
+        @self.bot.message_handler(commands=[COMMANDS['HELP']])
         def handle(message):
             self.pressed_button_help(message)
 
@@ -80,10 +72,13 @@ class HandlerMain(HandlerFunctions):
         def handle(message):
             self.pressed_button_info(message)
 
-        @self.bot.message_handler(commands=COMMANDS['ADD_WORD'])
+        @self.bot.message_handler(commands=[COMMANDS['ADD_WORD']])
         def handle_add_new_word(message):
-            self.bot.send_message(message.chat.id, "Введите слово на русском: ")
-            self.bot.register_next_step_handler(message, get_rus_word)
+            if message.chat.id not in self.user_states:
+                self.pressed_button_start(message)
+            if self.user_states[message.chat.id] == BotStates.play:
+                self.bot.send_message(message.chat.id, "Введите слово на русском: ")
+                self.bot.register_next_step_handler(message, get_rus_word)
 
         def get_rus_word(message):
             rus_word = message.text
@@ -121,10 +116,13 @@ class HandlerMain(HandlerFunctions):
                 self.bot.send_message(message.chat.id, "Неверный формат категории. Попробуйте снова")
                 self.bot.register_next_step_handler(message, get_category)
 
-        @self.bot.message_handler(commands=COMMANDS['DELETE_WORD'])
+        @self.bot.message_handler(commands=[COMMANDS['DELETE_WORD']])
         def handle_delete_word(message):
-            self.bot.send_message(message.chat.id, "Введите слово на русском или на английском: ")
-            self.bot.register_next_step_handler(message, get_deleting_word)
+            if message.chat.id not in self.user_states:
+                self.pressed_button_start(message)
+            if self.user_states[message.chat.id] == BotStates.play:
+                self.bot.send_message(message.chat.id, "Введите слово на русском или на английском: ")
+                self.bot.register_next_step_handler(message, get_deleting_word)
 
         def get_deleting_word(message):
             deleting_word = message.text
@@ -163,15 +161,19 @@ class HandlerMain(HandlerFunctions):
 
         @self.bot.message_handler(func=lambda message: True)
         def handle_text(message):
-            if message.text == KEYBOARD['NEXT_STEP']:
-                self.pressed_button_next(message)
-            elif message.text == KEYBOARD['SETTINGS']:
-                self.pressed_button_settings(message)
-            elif message.text == KEYBOARD['HINT']:
-                self.pressed_button_get_hint(message)
-            elif message.text == KEYBOARD['BACK']:
-                self.pressed_button_back(message)
-            elif message.text == KEYBOARD['USER_STATISTICS']:
-                self.pressed_button_show_user_statistics(message)
-            else:
-                self.check_answer(message, self.play_session.user.user_settings.translation_mode)
+            if message.chat.id not in self.user_states:
+                self.user_states[message.chat.id] = BotStates.start
+                self.pressed_button_start(message)
+            if self.user_states[message.chat.id] == BotStates.play:
+                if message.text == KEYBOARD['NEXT_STEP']:
+                    self.pressed_button_next(message)
+                elif message.text == KEYBOARD['SETTINGS']:
+                    self.pressed_button_settings(message)
+                elif message.text == KEYBOARD['HINT']:
+                    self.pressed_button_get_hint(message)
+                elif message.text == KEYBOARD['BACK']:
+                    self.pressed_button_back(message)
+                elif message.text == KEYBOARD['USER_STATISTICS']:
+                    self.pressed_button_show_user_statistics(message)
+                else:
+                    self.check_answer(message, self.play_session.user.user_settings.translation_mode)

@@ -1,5 +1,7 @@
 from random import shuffle
 import requests
+
+from database.db_core import engine
 from database.db_main import DBManager
 from models.bot_user import BotUser
 from models.word import Word
@@ -10,7 +12,7 @@ from settings.config import settings, CATEGORIES
 class PlaySession(PlaySessionCore):
     def __init__(self):
         super().__init__()
-        self.DB = DBManager()
+        self.DB = DBManager(engine=engine)
 
     def init_session(self, bot_user: BotUser, words_category: str, words_amount: int) -> None:
         self.user = bot_user
@@ -27,28 +29,27 @@ class PlaySession(PlaySessionCore):
             if self.target_word_index >= len(self.target_words):
                 self.is_target_list_ended = True
             return self.current_target_word
+        return None
 
     def _get_next_other_words(self, target: Word, amount: int) -> list[Word]:
-        if self.other_words and len(self.other_words) > amount:
+        if target and self.other_words:
+            if len(self.other_words) <= amount:
+                return []
             choices_list = list(self.other_words)
             for i, word in enumerate(choices_list):
                 if word.id == target.id:
                     choices_list.pop(i)
-                    break
             shuffle(choices_list)
             return choices_list[:amount]
-        else:
-            return []
+        return []
 
     def get_words_for_card(self, other_words_amount: int = settings.WORDS_IN_CARDS - 1) -> dict[str, list[Word] | Word] | None:
-        # Fixme: fix target word list ending and returning None
         target_word = self._get_next_target_word()
         other_words = self._get_next_other_words(target_word, other_words_amount)
         all_words = [target_word] + other_words
         if target_word and other_words:
             return {'target': target_word, 'other': other_words, 'all': all_words}
-        else:
-            return None
+        return None
 
     @staticmethod
     def get_words_description(word: str) -> str:

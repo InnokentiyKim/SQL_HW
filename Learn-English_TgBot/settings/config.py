@@ -1,7 +1,6 @@
 import os
 from emoji import emojize
 from enum import Enum
-from pydantic import SecretStr
 from pydantic.v1 import BaseSettings, Field
 
 
@@ -104,7 +103,7 @@ MENU_COMMANDS = {
     "/help": "Помощь",
     "/add_word": "Добавить слово",
     "/delete_word": "Удалить слово",
-    "/info": "О боте"
+    "/info": "О боте",
 }
 
 

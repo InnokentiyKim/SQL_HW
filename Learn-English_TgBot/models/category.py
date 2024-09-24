@@ -12,7 +12,7 @@ class Category(Base):
     name: Mapped[str] = mapped_column(default=CATEGORIES['COMMON']['name'])
 
     word: Mapped[list['Word']] = relationship(secondary='category_word', back_populates='category')
-    categories_word: Mapped[list['CategoryWord']] = relationship(back_populates='category_details', cascade='all, delete')
+    # categories_word: Mapped[list['CategoryWord']] = relationship(cascade='all, delete')
 
     __table_args__ = (
         UniqueConstraint('name'),

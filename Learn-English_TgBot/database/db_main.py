@@ -1,7 +1,8 @@
+from typing import cast
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
-from database.db_core import Session, Singleton, Base, engine
+from database.db_core import Session, Singleton, Base
 from models.category_word import CategoryWord
 from models.user_settings import UserSettings
 from models.user_stats import UserStats
@@ -15,17 +16,15 @@ import sqlalchemy as sa
 
 
 class DBManager(metaclass=Singleton):
-    def __init__(self):
+    def __init__(self, engine):
         self._session = Session()
         Base.metadata.create_all(engine)
 
     def identify_user(self, user_id: int) -> int | None:
         with self._session as session:
-            # TODO: implement with session.get
-            # session.get(BotUser, user_id, options=[joinedload(BotUser.user_stats), joinedload(BotUser.user_settings)])
             query = (
                 sa.select(BotUser)
-                .filter(BotUser.id == user_id)
+                .filter(cast("ColumnElement[bool]", BotUser.id == user_id))
                 .options(selectinload(BotUser.user_stats))
                 .options(selectinload(BotUser.user_settings))
             )
@@ -45,20 +44,18 @@ class DBManager(metaclass=Singleton):
                 session.flush()
                 user_stats = UserStats(bot_user=new_user)
                 user_settings = UserSettings(bot_user=new_user)
+                base_category = Category()
                 session.add_all([user_stats, user_settings])
+                session.add(base_category)
                 session.flush()
                 words = load_words_from_json(settings.DATA_PATH, user=new_user)
-                base_category = Category()
-                session.add(base_category)
+                for word in words:
+                    word.category = [base_category]
                 session.add_all(words)
                 session.flush()
-                category_words = [CategoryWord(word_details=word, category_details=base_category) for word in words]
-                session.add_all(category_words)
                 words_stats = [WordStats(word=word) for word in words]
                 session.add_all(words_stats)
                 session.commit()
-                new_user.user_settings = user_settings
-                new_user.user_stats = user_stats
                 return new_user
         except sa.exc.IntegrityError:
             pass
@@ -70,9 +67,10 @@ class DBManager(metaclass=Singleton):
         name = self.format_title(name)
         with self._session as session:
             query = (
-                sa.select(Category).filter(Category.name.ilike(f"{name}"))
+                sa.select(Category)
+                .filter(Category.name.ilike(f"{name}"))
                 .options(selectinload(Category.word))
-                .filter(Word.user_id == user_id)
+                .filter(cast("ColumnElement[bool]", Word.user_id == user_id))
             )
             category = session.execute(query).scalars().first()
         return category
@@ -82,7 +80,7 @@ class DBManager(metaclass=Singleton):
             query = (
                 sa.select(Category)
                 .options(selectinload(Category.word))
-                .filter(Word.user_id == user_id)
+                .filter(cast("ColumnElement[bool]", Word.user_id == user_id))
             )
             categories = session.execute(query).unique().scalars().all()
         return categories
@@ -114,9 +112,10 @@ class DBManager(metaclass=Singleton):
         words_title = self.format_title(title=words_title)
         with self._session as session:
             query = (
-                sa.select(Word).filter(Word.user_id == user_id)
+                sa.select(Word)
+                .options(selectinload(Word.category))
+                .filter(cast("ColumnElement[bool]", Word.user_id == user_id))
                 .filter(or_(Word.rus_title.ilike(f"{words_title}"), Word.eng_title.ilike(f"{words_title}")))
-                .options(selectinload(Word.words_category))
             )
             found_word = session.execute(query).scalars().first()
         return found_word
@@ -126,11 +125,12 @@ class DBManager(metaclass=Singleton):
         category = self.format_title(category)
         query = (
             sa.select(Word)
-            .filter(Word.user_id == user_id)
+            .options(joinedload(Word.bot_user))
             .options(joinedload(Word.word_stats))
             .options(selectinload(Word.category))
-            .filter(Category.name == category)
-            .filter(WordStats.is_studied == is_studied)
+            .filter(cast("ColumnElement[bool]", BotUser.id == user_id))
+            .filter(cast("ColumnElement[bool]", WordStats.is_studied == is_studied))
+            .filter(cast("ColumnElement[bool]", Category.name == category))
             .order_by(sa.func.random())
             .limit(amount)
         )
@@ -143,10 +143,10 @@ class DBManager(metaclass=Singleton):
         category = self.format_title(category)
         query = (
             sa.select(Word)
-            .filter(Word.user_id == user_id)
+            .filter(cast("ColumnElement[bool]", Word.user_id == user_id))
             .options(joinedload(Word.word_stats))
             .options(selectinload(Word.category))
-            .filter(Category.name == category)
+            .filter(cast("ColumnElement[bool]", Category.name == category))
             .order_by(sa.func.random())
             .limit(amount)
         )
@@ -182,14 +182,12 @@ class DBManager(metaclass=Singleton):
             new_word = Word(rus_title=rus_title, eng_title=eng_title, bot_user=user)
             with self._session as session:
                 session.add_all(category_list)
+                session.flush()
+                new_word.category = category_list
                 session.add(new_word)
                 session.flush()
                 new_word_stats = WordStats(word=new_word)
                 session.add(new_word_stats)
-                category_word_list = []
-                for item in category_list:
-                    category_word_list.append(CategoryWord(word_details=new_word, category_details=item))
-                session.add_all(category_word_list)
                 session.commit()
             return True
         except sa.exc.IntegrityError:

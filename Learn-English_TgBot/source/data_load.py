@@ -5,7 +5,6 @@ from models.category import Category
 from models.word import Word
 
 
-@error_logging(path=LOGGER_PATH)
 def load_words_from_json(file_path: str, user: BotUser, categories: list[Category] = None) -> list[Word]:
     with open (file_path, 'r', encoding='utf-8') as file:
         words_data = json.load(file)

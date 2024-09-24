@@ -1,5 +1,5 @@
-from telebot.types import BotCommand
-from settings.config import settings, MENU_COMMANDS
+from telebot.types import BotCommand, BotCommandScopeDefault, MenuButton, MenuButtonCommands, BotCommandScopeChat
+from settings.config import settings, MENU_COMMANDS, COMMANDS
 from telebot import TeleBot
 from handlers.handler_main import HandlerMain
 
@@ -11,12 +11,12 @@ class EnglishTelBot:
 
     def __init__(self):
         self.token = settings.TOKEN
-        self.bot = TeleBot(self.token)
+        self.bot = TeleBot(self.token, parse_mode='html')
         self.handler = HandlerMain(self.bot)
 
     def set_bot_menu(self, commands: dict):
         menu_commands = [BotCommand(key, value) for key, value in commands.items()]
-        self.bot.set_my_commands(commands=menu_commands)
+        self.bot.set_my_commands(menu_commands)
 
 
     def start(self):
