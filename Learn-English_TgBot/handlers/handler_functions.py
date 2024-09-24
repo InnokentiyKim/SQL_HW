@@ -1,6 +1,8 @@
 import re
 from datetime import datetime, UTC
 from random import shuffle
+from xml.sax import parse
+
 from handlers.handler_core import Handler
 from telebot.types import Message
 from models.bot_user import BotUser
@@ -26,12 +28,13 @@ class HandlerFunctions(Handler):
         user = self.DB.identify_user(user_id)
         if not user:
             user = self.DB.add_new_user(user_id, user_name)
-            self.bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}! Будем знакомы!")
-            self.bot.send_message(message.chat.id, f"{message.from_user.first_name}, {MESSAGES['START']}")
+            self.bot.send_message(message.chat.id, f"{message.from_user.first_name}{MESSAGES['WELCOME']}")
+            self.bot.send_message(message.chat.id, f"{message.from_user.first_name}{MESSAGES['START']}")
         else:
-            self.bot.send_message(message.chat.id, f"С возвращением, {message.from_user.first_name}! Рада видеть вас снова!")
-        self.play_session.init_session(bot_user=user, words_category=CATEGORIES['COMMON']['name'], words_amount=user.user_settings.words_chunk_size)
-        self.bot.send_message(message.chat.id, f"Чтобы начать введите команду /cards", parse_mode='html')
+            self.bot.send_message(message.chat.id, f"{message.from_user.first_name}{MESSAGES['WELCOME_BACK']}")
+        self.play_session.init_session(bot_user=user, words_category=CATEGORIES['COMMON']['name'],
+                                       words_amount=user.user_settings.words_chunk_size)
+        self.bot.send_message(message.chat.id, f"{MESSAGES['LETS_START']}", parse_mode='html')
 
     def update_users_play_stats(self) -> bool:
         self.play_session.user.last_seen_at = datetime.now(tz=UTC)
@@ -64,8 +67,8 @@ class HandlerFunctions(Handler):
                                f"<i>Правильных ответов: {self.play_session.round_successful_attempts}</i>")
             self.update_users_play_stats()
             self.play_session.init_session(bot_user=user, words_category=CATEGORIES['COMMON']['name'], words_amount=user.user_settings.words_chunk_size)
-            self.bot.send_message(message.chat.id, f"Раунд закончен. Нажмите {KEYBOARD['NEXT_STEP']} чтобы начать новый")
-            self.bot.send_message(message.chat.id, f"<b>Результаты раунда:</b>\n{round_stats_str}",
+            self.bot.send_message(message.chat.id, MESSAGES['END_ROUND'], parse_mode='html')
+            self.bot.send_message(message.chat.id, f"{MESSAGES['ROUND_RESULTS']}\n{round_stats_str}",
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     def change_notification_state(self, call):
@@ -75,7 +78,7 @@ class HandlerFunctions(Handler):
         else:
             user_settings.notification = 0
         self.DB.update_user_settings(self.play_session.user)
-        answer = "Уведомления выключены" if not user_settings.notification else "Уведомления включены"
+        answer = MESSAGES['NOTIF_ON'] if not user_settings.notification else MESSAGES['NOTIF_OFF']
         self.bot.send_message(chat_id=call.message.chat.id, text=answer)
 
     def change_translation_mode(self, call):
@@ -85,8 +88,8 @@ class HandlerFunctions(Handler):
         elif user_settings.translation_mode == TranslationMode.RUS_TO_ENG:
             user_settings.translation_mode = TranslationMode.ENG_TO_RUS
         self.DB.update_user_settings(self.play_session.user)
-        answer = "Перевод с английского на русский" if user_settings.translation_mode == TranslationMode.ENG_TO_RUS \
-            else "Перевод с русского на английский"
+        answer = MESSAGES['ENG_TO_RUS'] if user_settings.translation_mode == TranslationMode.ENG_TO_RUS \
+            else MESSAGES['RUS_TO_ENG']
         self.bot.send_message(chat_id=call.message.chat.id, text=answer)
 
     def change_words_chunk_size(self, message):
@@ -95,7 +98,7 @@ class HandlerFunctions(Handler):
         if input_number:
             user_settings.words_chunk_size = input_number
             self.DB.update_user_settings(self.play_session.user)
-        answer = f"Количество слов раунда изменено на {input_number}" if input_number else "Задано некорректное число слов. Настройки не изменены"
+        answer = f"{MESSAGES['CHANGE_WORDS_AMOUNT']} {input_number}" if input_number else MESSAGES['WRONG_AMOUNT']
         self.bot.send_message(chat_id=message.chat.id, text=answer, reply_markup=self.markup.active_keyboard)
 
     def reset_all_settings(self, call) -> None:
@@ -103,18 +106,18 @@ class HandlerFunctions(Handler):
         user_settings.words_chunk_size = settings.TARGET_WORDS_CHUNK_SIZE
         user_settings.translation_mode = TranslationMode.RUS_TO_ENG
         user_settings.notification = 0
-        answer = f"Не удалось сбросить настройки"
+        answer = MESSAGES['RESET_FAILED']
         if self.DB.update_user_settings(self.play_session.user):
-            answer = f"Все настройки сброшены"
+            answer = MESSAGES['RESET_SUCCESS']
         self.bot.send_message(call.message.chat.id, answer, parse_mode='html')
 
     def get_hint(self, message, word: str = None) -> None:
         word = self.play_session.current_target_word.eng_title if not word else word.lower().strip()
         hint = self.play_session.get_words_description(word)
         if hint:
-            self.bot.send_message(message.chat.id, f"Подсказка: <i>{hint}</i>", parse_mode='html')
+            self.bot.send_message(message.chat.id, f"{MESSAGES['HINT']} <i>{hint}</i>", parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"К сожалению, подсказка недоступна")
+            self.bot.send_message(message.chat.id, MESSAGES['NO_HINT'], parse_mode='html')
 
     def add_new_word(self, message, rus_title: str, eng_title: str, category_name: str):
         user = self.play_session.user
@@ -145,23 +148,24 @@ class HandlerFunctions(Handler):
 
     @staticmethod
     def _suit_user_settings(input_settings: UserSettings) -> str:
-        formatted_settings = {'Количество слов в раунде': input_settings.words_chunk_size}
+        res_string = f"<b>Текущие настройки:</b>\n\n"
+        formatted_settings = {}
+        formatted_settings['Количество слов в раунде'] = input_settings.words_chunk_size
         if input_settings.translation_mode == TranslationMode.RUS_TO_ENG:
-            formatted_settings['Режим перевода'] = 'С русского на английский'
+            formatted_settings['Режим перевода'] = MESSAGES['RUS_TO_ENG']
         elif input_settings.translation_mode == TranslationMode.ENG_TO_RUS:
-            formatted_settings['Режим перевода'] = 'С английского на русский'
+            formatted_settings['Режим перевода'] = MESSAGES['ENG_TO_RUS']
         if input_settings.notification:
-            formatted_settings['Напоминания'] = 'Включены'
+            formatted_settings['Напоминания'] = MESSAGES['NOTIF_ON']
         else:
-            formatted_settings['Напоминания'] = 'Отключены'
-        res_string = "\n".join([f"<b>{key}</b>: <i>{value}</i>" for key, value in formatted_settings.items()])
+            formatted_settings['Напоминания'] = MESSAGES['NOTIF_OFF']
+        res_string = res_string + "\n".join([f"<b><i>{key}</i></b>: <i>{value}</i>" for key, value in formatted_settings.items()])
         return res_string
 
     def get_user_settings(self, message):
         user_settings = self.play_session.user.user_settings
         if user_settings:
-            settings_string = self._suit_user_settings(user_settings)
-            answer_str = f"<b>Текущие настройки:</b>\n{settings_string}"
+            answer_str = self._suit_user_settings(user_settings)
         else:
             answer_str = "<b>Не удалось получить настройки</b>"
         settings_keyboard = self.markup.get_settings_keyboard(SETTINGS_KEYBOARD)
@@ -172,14 +176,10 @@ class HandlerFunctions(Handler):
         main_keyboard = self.markup.active_keyboard
         self.bot.send_message(message.chat.id, MESSAGES['INFO'], reply_markup=main_keyboard, parse_mode='html')
 
-    def get_step_back(self, message):
-        main_keyboard = self.markup.active_keyboard
-        self.bot.send_message(message.chat.id, f"Вы вернулись назад", reply_markup=main_keyboard, parse_mode='html')
-
     @staticmethod
     def _suit_user_stats(user: BotUser, categories: list[str], words_in_study: int) -> str:
-        user_stats_str = "<b>Статистика пользователя</b>\n"
-        category_stats_str = "<b>Список категорий слов:</b>\n"
+        user_stats_str = f"{MESSAGES['USER_STATS']}\n"
+        category_stats_str = f"{MESSAGES['CATEGORIES']}\n"
         user_stats = user.user_stats
         rating = user_stats.successful_attempts / user_stats.number_of_attempts * 100 if user_stats.number_of_attempts > 0 else 0
         stats = {'Всего попыток': f'{user_stats.number_of_attempts}', 'Успешных попыток': f'{user_stats.successful_attempts}',
@@ -212,15 +212,16 @@ class HandlerFunctions(Handler):
             if true_answer.capitalize().strip() == answer:
                 self.play_session.increase_target_words_stats()
                 self.play_session.increase_player_stats()
-                self.bot.send_message(message.chat.id, "Правильно", reply_markup=self.markup.active_keyboard)
+                self.bot.send_message(message.chat.id, MESSAGES['TRUE_ANSWER'],
+                                      reply_markup=self.markup.active_keyboard, parse_mode='html')
             else:
                 self.play_session.decrease_target_words_stats()
                 self.play_session.decrease_player_stats()
-                self.bot.send_message(message.chat.id, "К сожалению, вы ошиблись. Попробуйте снова")
+                self.bot.send_message(message.chat.id, MESSAGES['FALSE_ANSWER'], parse_mode='html')
                 self.bot.send_message(message.chat.id, f"{MESSAGES['NEXT_WORD']} {question} ",
-                                      reply_markup=self.markup.active_keyboard)
+                                      reply_markup=self.markup.active_keyboard, parse_mode='html')
         else:
-            self.bot.send_message(message.chat.id, f"Вы уже отгадали это слово. Нажмите {KEYBOARD['NEXT_STEP']}",
+            self.bot.send_message(message.chat.id, MESSAGES['REPEAT'],
                                   reply_markup=self.markup.active_keyboard, parse_mode='html')
 
     @staticmethod

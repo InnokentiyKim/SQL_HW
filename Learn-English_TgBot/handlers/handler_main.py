@@ -2,6 +2,7 @@ from telebot.types import Message, CallbackQuery
 from handlers.handler_functions import HandlerFunctions
 from settings.config import COMMANDS, KEYBOARD, settings
 from handlers.bot_states import BotStates
+from settings.messages import MESSAGES
 
 
 class HandlerMain(HandlerFunctions):
@@ -30,9 +31,6 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_info(self, message: Message):
         self.get_info(message)
-
-    def pressed_button_back(self, message: Message):
-        self.get_step_back(message)
 
     def pressed_button_next(self, message: Message):
         self.get_next_card(message, play_mode=self.play_session.user.user_settings.translation_mode)
@@ -75,7 +73,7 @@ class HandlerMain(HandlerFunctions):
             if message.chat.id not in self.user_states:
                 self.pressed_button_start(message)
             if self.user_states[message.chat.id] == BotStates.play:
-                self.bot.send_message(message.chat.id, "Введите слово на русском: ")
+                self.bot.send_message(message.chat.id, MESSAGES['ADD_WORD_RUS'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_rus_word)
 
         def get_rus_word(message):
@@ -84,9 +82,9 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.new_users_word['rus_title'] = rus_word
                 self.bot.register_next_step_handler(message, get_eng_word)
-                self.bot.send_message(message.chat.id, "Введите слово на английском: ")
+                self.bot.send_message(message.chat.id, MESSAGES['ADD_WORD_ENG'], parse_mode='HTML')
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.send_message(message.chat.id, MESSAGES['WRONG_FORMAT'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_rus_word)
 
         def get_eng_word(message):
@@ -95,10 +93,9 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.new_users_word['eng_title'] = eng_word
                 self.bot.register_next_step_handler(message, get_category)
-                self.bot.send_message(message.chat.id, "Введите категорию (<i>all</i> или <i>все</i> - <i>Общая</i> категория): ",
-                                      parse_mode='html')
+                self.bot.send_message(message.chat.id, MESSAGES['ENTER_CATEGORY'], parse_mode='html')
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.send_message(message.chat.id, MESSAGES['WRONG_FORMAT'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_eng_word)
 
         def get_category(message):
@@ -111,7 +108,7 @@ class HandlerMain(HandlerFunctions):
                     eng_title=self.new_users_word['eng_title'], category_name=self.new_users_word['category_name']
                 )
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат категории. Попробуйте снова")
+                self.bot.send_message(message.chat.id, MESSAGES['WRONG_CAT_FORMAT'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_category)
 
         @self.bot.message_handler(commands=[COMMANDS['DELETE_WORD']])
@@ -119,7 +116,7 @@ class HandlerMain(HandlerFunctions):
             if message.chat.id not in self.user_states:
                 self.pressed_button_start(message)
             if self.user_states[message.chat.id] == BotStates.play:
-                self.bot.send_message(message.chat.id, "Введите слово на русском или на английском: ")
+                self.bot.send_message(message.chat.id, MESSAGES['ENTER_WORD'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_deleting_word)
 
         def get_deleting_word(message):
@@ -128,7 +125,7 @@ class HandlerMain(HandlerFunctions):
             if is_valid_word:
                 self.delete_word(message, deleting_word)
             else:
-                self.bot.send_message(message.chat.id, "Неверный формат слова. Попробуйте снова")
+                self.bot.send_message(message.chat.id, MESSAGES['WRONG_FORMAT'], parse_mode='HTML')
                 self.bot.register_next_step_handler(message, get_deleting_word)
 
 
@@ -169,8 +166,6 @@ class HandlerMain(HandlerFunctions):
                     self.pressed_button_settings(message)
                 elif message.text == KEYBOARD['HINT']:
                     self.pressed_button_get_hint(message)
-                elif message.text == KEYBOARD['BACK']:
-                    self.pressed_button_back(message)
                 elif message.text == KEYBOARD['USER_STATISTICS']:
                     self.pressed_button_show_user_statistics(message)
                 else:

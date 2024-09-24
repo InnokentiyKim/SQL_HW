@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql.operators import or_
 from database.db_core import Session, Singleton, Base
-from models.category_word import CategoryWord
 from models.user_settings import UserSettings
 from models.user_stats import UserStats
 from models.category import Category
@@ -102,11 +101,15 @@ class DBManager(metaclass=Singleton):
             cur_settings = session.get(UserSettings, user_id)
             return cur_settings
 
-    def update_user_settings(self, user: BotUser) -> bool | None:
-        with self._session as session:
-            session.add(user)
-            session.commit()
-            return True
+    def update_user_settings(self, user: BotUser) -> bool:
+        try:
+            with self._session as session:
+                session.add(user)
+                session.commit()
+                return True
+        except Exception as error:
+            pass
+        return False
 
     def find_word(self, user_id: int, words_title: str) -> Word | None:
         words_title = self.format_title(title=words_title)

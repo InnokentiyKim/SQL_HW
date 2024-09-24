@@ -1,5 +1,4 @@
 import abc
-
 from database.db_core import engine
 from markup.markups import Markup
 from database.db_main import DBManager
