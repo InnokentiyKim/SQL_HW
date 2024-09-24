@@ -11,8 +11,6 @@ class HandlerMain(HandlerFunctions):
 
     def pressed_button_help(self, message: Message):
         self.get_help(message)
-        # if self.bot.get_state(message.from_user.id, message.chat.id) == BotStates.start:
-        #     self.bot.set_state(message.from_user.id, BotStates.start, message.chat.id)
 
     def pressed_button_start(self, message: Message):
         self.start_actions(message)

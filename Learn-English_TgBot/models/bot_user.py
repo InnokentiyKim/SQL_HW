@@ -14,8 +14,8 @@ class BotUser(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(tz=UTC), nullable=False)
     last_seen_at: Mapped[datetime] = mapped_column(default=datetime.now(tz=UTC), nullable=False)
 
-    user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user', uselist=False)
-    user_settings: Mapped['UserSettings'] = relationship(back_populates='bot_user', uselist=False)
+    user_stats: Mapped['UserStats'] = relationship(back_populates='bot_user', uselist=False, cascade='all, delete-orphan')
+    user_settings: Mapped['UserSettings'] = relationship(back_populates='bot_user', uselist=False, cascade='all, delete-orphan')
     word: Mapped[list['Word']] = relationship(back_populates='bot_user')
 
     def __str__(self):

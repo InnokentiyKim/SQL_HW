@@ -1,12 +1,12 @@
 from random import shuffle
 import requests
-
 from database.db_core import engine
 from database.db_main import DBManager
 from models.bot_user import BotUser
 from models.word import Word
 from play_session.session_core import PlaySessionCore
 from settings.config import settings, CATEGORIES
+from source.features import cached
 
 
 class PlaySession(PlaySessionCore):
@@ -52,16 +52,12 @@ class PlaySession(PlaySessionCore):
         return None
 
     @staticmethod
+    @cached
     def get_words_description(word: str) -> str:
-        # TODO: Add caching
-        cached = {}
-        if word in cached:
-            return cached[word]
         try:
             words_api_url = f"{settings.WORDS_URL}{word}"
             response = requests.get(words_api_url).json()
             description = response[0].get('meanings')[0].get('definitions')[0].get('definition')
-            cached[word] = description
         except Exception as error:
             description = None
         return description

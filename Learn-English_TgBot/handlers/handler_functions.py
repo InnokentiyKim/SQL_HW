@@ -35,8 +35,8 @@ class HandlerFunctions(Handler):
 
     def update_users_play_stats(self) -> bool:
         self.play_session.user.last_seen_at = datetime.now(tz=UTC)
-        updating_res = self.DB.update_users_stats(self.play_session.user, self.play_session.target_words)
-        return updating_res
+        updating_status = self.DB.update_users_stats(self.play_session.user, self.play_session.target_words)
+        return updating_status
 
     def get_next_card(self, message, play_mode: TranslationMode = TranslationMode.RUS_TO_ENG):
         card = self.play_session.get_words_for_card()

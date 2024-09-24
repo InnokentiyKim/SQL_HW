@@ -159,7 +159,8 @@ class DBManager(metaclass=Singleton):
             try:
                 with self._session as session:
                     session.add(user)
-                    session.add_all(words)
+                    word_stats = [word.word_stats for word in words]
+                    session.add_all(word_stats)
                     session.commit()
                 return True
             except Exception as error:

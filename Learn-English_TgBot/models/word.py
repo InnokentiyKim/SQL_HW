@@ -18,7 +18,6 @@ class Word(Base):
     bot_user: Mapped['BotUser'] = relationship(back_populates='word')
     word_stats: Mapped['WordStats'] = relationship(back_populates='word', uselist=False, cascade='all, delete-orphan')
     category: Mapped[list['Category']] = relationship(secondary='category_word', back_populates='word')
-    # words_category: Mapped[list['CategoryWord']] = relationship(cascade='all, delete')
 
     __tableargs__ = (
         UniqueConstraint(rus_title, eng_title),
